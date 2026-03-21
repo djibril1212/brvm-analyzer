@@ -119,7 +119,7 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
                 </div>
                 {best && (
                   <div className="flex items-center justify-between pt-1 border-t border-border/50">
-                    <span className="font-mono text-[10px] text-muted-foreground">
+                    <span className="font-mono text-[10px] text-gold">
                       {best.symbol}
                     </span>
                     <span

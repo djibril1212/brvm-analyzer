@@ -31,7 +31,7 @@ export function TickerTape({ stocks }: TickerTapeProps) {
       <div className="animate-ticker flex items-center select-none">
         {doubled.map((item, i) => (
           <span key={i} className="inline-flex items-center gap-1.5 px-3 shrink-0">
-            <span className="font-mono font-semibold text-[11px] text-foreground">
+            <span className="font-mono font-semibold text-[11px] text-gold">
               {item.symbol}
             </span>
             <span className="font-mono text-[11px] tabular-nums text-foreground/80">
@@ -44,7 +44,7 @@ export function TickerTape({ stocks }: TickerTapeProps) {
               {formatVariation(item.variation)}
             </span>
             {item.isLive && (
-              <span className="h-1 w-1 rounded-full bg-emerald-500 opacity-80" />
+              <span className="h-1 w-1 rounded-full bg-up opacity-80" />
             )}
             <span className="text-border/60 ml-1 text-[11px]">|</span>
           </span>

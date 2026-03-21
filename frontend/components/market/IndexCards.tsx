@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatVariation, variationColor, formatCFA } from "@/lib/format";
 import type { MarketSession } from "@/types/brvm";
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
@@ -30,7 +29,6 @@ export function IndexCards({ session }: IndexCardsProps) {
       : []),
   ];
 
-  // Top hausse / baisse du jour
   const stocks = session.stocks ?? [];
   const topHausse = stocks.length
     ? stocks.reduce((best, s) =>
@@ -43,96 +41,112 @@ export function IndexCards({ session }: IndexCardsProps) {
       )
     : null;
 
+  const total = (session.advancing ?? 0) + (session.declining ?? 0) + (session.unchanged ?? 0);
+  const advancePct = total > 0 ? ((session.advancing ?? 0) / total) * 100 : 0;
+  const declinePct = total > 0 ? ((session.declining ?? 0) / total) * 100 : 0;
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-      {/* Indices */}
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {/* Index KPI cards */}
       {indices.map((idx) => {
         const up = idx.variation > 0;
         const down = idx.variation < 0;
         const Icon = up ? TrendingUp : down ? TrendingDown : Minus;
         return (
-          <Card key={idx.label} className="bg-card border-border">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {idx.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              <p className="text-2xl font-semibold tracking-tight font-mono tabular-nums">
-                {idx.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}
-              </p>
-              <div className={`flex items-center gap-1 text-sm ${variationColor(idx.variation)}`}>
-                <Icon className="h-3.5 w-3.5" />
-                <span className="font-mono">{formatVariation(idx.variation)}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <div
+            key={idx.label}
+            className="rounded-lg border border-border bg-card px-4 py-3 space-y-1"
+          >
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider truncate">
+              {idx.label}
+            </p>
+            <p className="font-mono text-[22px] font-bold tabular-nums leading-tight text-foreground">
+              {idx.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}
+            </p>
+            <div className={`flex items-center gap-1 text-[13px] ${variationColor(idx.variation)}`}>
+              <Icon className="h-3 w-3 shrink-0" />
+              <span className="font-mono font-medium">{formatVariation(idx.variation)}</span>
+            </div>
+          </div>
         );
       })}
 
-      {/* Séance stats + top hausse/baisse */}
-      <Card className="bg-card border-border sm:col-span-2 lg:col-span-2">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Séance
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-0">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">En hausse</span>
-              <span className="text-sm font-mono font-semibold tabular-nums text-emerald-400">
-                {session.advancing}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">En baisse</span>
-              <span className="text-sm font-mono font-semibold tabular-nums text-red-400">
-                {session.declining}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Stables</span>
-              <span className="text-sm font-mono font-semibold tabular-nums text-muted-foreground">
-                {session.unchanged}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">Cap.</span>
-              <span className="text-sm font-mono font-semibold tabular-nums text-foreground">
-                {formatCFA(session.market_cap, true)}
-              </span>
-            </div>
+      {/* Session breadth card */}
+      <div className="rounded-lg border border-border bg-card px-4 py-3 space-y-2 sm:col-span-2 lg:col-span-2">
+        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          Séance · Largeur du marché
+        </p>
 
+        {/* Breadth bar */}
+        {total > 0 && (
+          <div className="flex h-1.5 rounded-full overflow-hidden gap-px">
+            <div
+              className="bg-up/70 rounded-l-full"
+              style={{ width: `${advancePct}%` }}
+            />
+            <div
+              className="bg-muted-foreground/30"
+              style={{ width: `${100 - advancePct - declinePct}%` }}
+            />
+            <div
+              className="bg-down/70 rounded-r-full"
+              style={{ width: `${declinePct}%` }}
+            />
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+          <div className="flex justify-between items-center">
+            <span className="text-[11px] text-muted-foreground">En hausse</span>
+            <span className="text-[13px] font-mono font-semibold tabular-nums text-up">
+              {session.advancing}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[11px] text-muted-foreground">En baisse</span>
+            <span className="text-[13px] font-mono font-semibold tabular-nums text-down">
+              {session.declining}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[11px] text-muted-foreground">Stables</span>
+            <span className="text-[13px] font-mono font-semibold tabular-nums text-muted-foreground">
+              {session.unchanged}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[11px] text-muted-foreground">Cap. marché</span>
+            <span className="text-[13px] font-mono font-semibold tabular-nums text-foreground">
+              {formatCFA(session.market_cap, true)}
+            </span>
+          </div>
+        </div>
+
+        {(topHausse || topBaisse) && (
+          <div className="pt-1.5 border-t border-border/50 space-y-1">
             {topHausse && (
-              <div className="flex justify-between items-center col-span-2 pt-1 border-t border-border mt-1">
-                <span className="text-xs text-muted-foreground">
-                  Top hausse{" "}
-                  <span className="font-mono text-foreground">
-                    {topHausse.symbol}
-                  </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-muted-foreground">
+                  Top hausse <span className="font-mono text-gold">{topHausse.symbol}</span>
                 </span>
-                <span className="text-sm font-mono font-semibold text-emerald-400 tabular-nums">
+                <span className="text-[12px] font-mono font-semibold text-up tabular-nums">
                   +{topHausse.variation_pct.toFixed(2)}%
                 </span>
               </div>
             )}
             {topBaisse && (
-              <div className="flex justify-between items-center col-span-2">
-                <span className="text-xs text-muted-foreground">
-                  Top baisse{" "}
-                  <span className="font-mono text-foreground">
-                    {topBaisse.symbol}
-                  </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-muted-foreground">
+                  Top baisse <span className="font-mono text-gold">{topBaisse.symbol}</span>
                 </span>
-                <span className="text-sm font-mono font-semibold text-red-400 tabular-nums">
+                <span className="text-[12px] font-mono font-semibold text-down tabular-nums">
                   {topBaisse.variation_pct.toFixed(2)}%
                 </span>
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 }

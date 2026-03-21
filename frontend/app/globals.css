@@ -3,9 +3,7 @@
 @tailwind utilities;
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+  .text-balance { text-wrap: balance; }
 }
 
 /* Ticker tape animation */
@@ -18,57 +16,60 @@
   width: max-content;
   will-change: transform;
 }
-.animate-ticker:hover {
-  animation-play-state: paused;
-}
+.animate-ticker:hover { animation-play-state: paused; }
 
 @layer base {
-  /* BRVM dark theme — variables CSS (Tailwind v3) */
+  /* ── BRVM Analyzer — Dark gold theme ── */
   :root {
-    --background: 222 47% 11%;         /* #0F172A slate très sombre */
-    --foreground: 213 31% 91%;
+    /* Backgrounds */
+    --background:  230 46%  8%;   /* #0B0F1E */
+    --card:        230 38% 11%;   /* #111526 */
+    --card-foreground: 220 20% 92%;
 
-    --card: 222 47% 15%;
-    --card-foreground: 213 31% 91%;
+    --popover:     230 38% 11%;
+    --popover-foreground: 220 20% 92%;
 
-    --popover: 222 47% 15%;
-    --popover-foreground: 213 31% 91%;
+    --foreground:  220 20% 92%;   /* #E8EAF0 */
 
-    /* Vert BRVM : #2E8B57 ≈ hsl(146 50% 36%) */
-    --primary: 146 50% 36%;
-    --primary-foreground: 0 0% 100%;
+    /* Gold primary */
+    --primary:      41 52% 54%;   /* #C9A84C */
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 222 47% 18%;
-    --secondary-foreground: 213 31% 91%;
+    --secondary:   230 30% 16%;
+    --secondary-foreground: 220 20% 92%;
 
-    --muted: 222 47% 18%;
-    --muted-foreground: 215 20% 55%;
+    --muted:       230 28% 15%;
+    --muted-foreground: 220 12% 58%;  /* #8890A0 */
 
-    --accent: 222 47% 18%;
-    --accent-foreground: 213 31% 91%;
+    --accent:      230 28% 16%;
+    --accent-foreground: 220 20% 92%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 28% 17%;
-    --input: 215 28% 20%;
-    --ring: 146 50% 36%;
+    --border:      230 30% 16%;   /* subtle border */
+    --input:       230 30% 17%;
+    --ring:        41 52% 54%;    /* gold focus ring */
 
-    /* Graphiques */
-    --chart-1: 146 50% 50%;   /* vert */
-    --chart-2: 0 84% 60%;     /* rouge */
-    --chart-3: 38 92% 55%;    /* orange */
-    --chart-4: 217 91% 60%;   /* bleu */
-    --chart-5: 270 60% 60%;   /* violet */
+    /* Chart colors */
+    --chart-1: 142 71% 45%;  /* green */
+    --chart-2: 0   84% 60%;  /* red */
+    --chart-3: 41  52% 54%;  /* gold */
+    --chart-4: 217 91% 60%;  /* blue */
+    --chart-5: 270 60% 60%;  /* purple */
 
     --radius: 0.5rem;
   }
 
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 2px; }
 }

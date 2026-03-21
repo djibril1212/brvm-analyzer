@@ -27,6 +27,11 @@ const config: Config = {
         accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
         card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" },
         popover: { DEFAULT: "hsl(var(--popover))", foreground: "hsl(var(--popover-foreground))" },
+        // BRVM semantic tokens
+        gold: "#C9A84C",
+        up:   "#22C55E",
+        down: "#EF4444",
+        faint: "#5A6070",
       },
       borderRadius: {
         lg: "var(--radius)",

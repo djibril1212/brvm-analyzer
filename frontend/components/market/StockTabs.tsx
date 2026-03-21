@@ -59,30 +59,30 @@ function MiniTable({
             return (
               <TableRow
                 key={stock.symbol}
-                className="border-border hover:bg-muted/30"
+                className="border-border hover:bg-muted/40 transition-colors"
               >
-                <TableCell className="font-mono font-semibold text-xs">
+                <TableCell className="font-mono font-semibold text-[13px] text-gold">
                   {stock.symbol}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
+                <TableCell className="text-[13px] text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
                   {stock.name}
                 </TableCell>
-                <TableCell className="text-right font-mono text-xs tabular-nums">
+                <TableCell className="text-right font-mono text-[13px] tabular-nums text-foreground">
                   {price.toLocaleString("fr-FR")}
                   {isLive && (
-                    <span className="ml-1 h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block align-middle" />
+                    <span className="ml-1 h-1.5 w-1.5 rounded-full bg-up inline-block align-middle" />
                   )}
                 </TableCell>
                 <TableCell className="text-right">
                   <Badge
                     variant="outline"
-                    className={`font-mono text-xs tabular-nums ${variationBg(variation)}`}
+                    className={`font-mono text-[12px] tabular-nums ${variationBg(variation)}`}
                   >
                     {formatVariation(variation)}
                   </Badge>
                 </TableCell>
                 {mode === "volume" && (
-                  <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground hidden sm:table-cell">
+                  <TableCell className="text-right font-mono text-[13px] tabular-nums text-muted-foreground hidden sm:table-cell">
                     {formatCFA(stock.value_traded, true)}
                   </TableCell>
                 )}

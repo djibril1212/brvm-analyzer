@@ -62,7 +62,7 @@ export function SearchCommand({ stocks }: SearchCommandProps) {
                   onSelect={() => setOpen(false)}
                   className="flex items-center gap-3"
                 >
-                  <span className="font-mono font-bold text-xs w-14 shrink-0 text-foreground">
+                  <span className="font-mono font-bold text-[13px] w-14 shrink-0 text-gold">
                     {stock.symbol}
                   </span>
                   <span className="text-xs text-muted-foreground flex-1 truncate">
@@ -77,7 +77,7 @@ export function SearchCommand({ stocks }: SearchCommandProps) {
                     {formatVariation(variation)}
                   </span>
                   {live?.last_price && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-up shrink-0" />
                   )}
                 </CommandItem>
               );

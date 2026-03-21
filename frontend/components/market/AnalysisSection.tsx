@@ -41,11 +41,11 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
   return (
     <div className="space-y-4">
       {/* Résumé + sentiment */}
-      <Card className="bg-card border-border">
+      <Card className="bg-card border-border border-l-2 border-l-gold/50">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
+              <Sparkles className="h-4 w-4 text-gold" />
               Analyse IA — Résumé de séance
             </CardTitle>
             <Badge
@@ -57,7 +57,7 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-[13px] text-muted-foreground leading-relaxed">
             {data.resume_executif}
           </p>
 
@@ -103,7 +103,7 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
                 {i > 0 && <Separator className="mb-4" />}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono font-semibold text-sm text-foreground">
+                    <span className="font-mono font-semibold text-[14px] text-gold">
                       {pick.symbole}
                     </span>
                     <span className="text-xs text-muted-foreground">{pick.nom}</span>
@@ -132,13 +132,13 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
                   </div>
                   <ul className="space-y-1">
                     {pick.arguments.map((arg, j) => (
-                      <li key={j} className="text-xs text-muted-foreground flex gap-2">
-                        <span className="text-primary mt-0.5 shrink-0">·</span>
+                      <li key={j} className="text-[13px] text-muted-foreground flex gap-2">
+                        <span className="text-gold mt-0.5 shrink-0">·</span>
                         <span>{arg}</span>
                       </li>
                     ))}
                   </ul>
-                  <p className="text-xs text-muted-foreground/60 italic">
+                  <p className="text-[12px] text-muted-foreground/60 italic">
                     {pick.note_de_prudence}
                   </p>
                 </div>
@@ -193,8 +193,8 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             {data.valeurs_en_surveillance.map((v) => (
-              <div key={v.symbole} className="flex gap-3 text-xs">
-                <span className="font-mono font-semibold text-foreground w-16 shrink-0">
+              <div key={v.symbole} className="flex gap-3 text-[13px]">
+                <span className="font-mono font-semibold text-gold w-16 shrink-0">
                   {v.symbole}
                 </span>
                 <span className="text-muted-foreground">{v.raison}</span>
@@ -215,8 +215,8 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             {data.valeurs_a_eviter.map((v) => (
-              <div key={v.symbole} className="flex gap-3 text-xs">
-                <span className="font-mono font-semibold text-red-400/80 w-16 shrink-0">
+              <div key={v.symbole} className="flex gap-3 text-[13px]">
+                <span className="font-mono font-semibold text-down/80 w-16 shrink-0">
                   {v.symbole}
                 </span>
                 <span className="text-muted-foreground">{v.raison}</span>

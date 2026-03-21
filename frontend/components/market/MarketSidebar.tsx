@@ -57,11 +57,11 @@ function StockRow({ rank, symbol, name, price, variation, isLive }: StockRowProp
       <MiniSparkline variation={variation} />
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-1">
-          <span className="font-mono font-bold text-[11px] text-foreground">
+          <span className="font-mono font-bold text-[11px] text-gold">
             {symbol}
           </span>
           {isLive && (
-            <span className="h-1 w-1 rounded-full bg-emerald-500 shrink-0" />
+            <span className="h-1 w-1 rounded-full bg-up shrink-0" />
           )}
         </div>
         <p className="text-[9px] text-muted-foreground truncate leading-tight">
