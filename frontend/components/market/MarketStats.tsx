@@ -25,7 +25,7 @@ function Tile({ label, value, sub, icon: Icon, iconColor, valueColor }: StatTile
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide truncate mb-0.5">
           {label}
         </p>
-        <p className={`font-mono text-sm font-semibold tabular-nums leading-tight truncate ${valueColor ?? "text-foreground"}`}>
+        <p className={`font-mono text-sm font-semibold tabular-nums leading-tight ${valueColor ?? "text-foreground"}`}>
           {value}
         </p>
         <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{sub}</p>
@@ -71,15 +71,15 @@ export function MarketStats({ stocks }: MarketStatsProps) {
   const tiles: StatTile[] = [
     {
       label: "Valeur échangée",
-      value: `${formatValue(totalValue)} XOF`,
-      sub: `${activeCount} valeurs actives`,
+      value: formatValue(totalValue),
+      sub: `XOF · ${activeCount} actives`,
       icon: Activity,
       iconColor: "text-blue-400",
     },
     {
       label: "Volume total",
-      value: `${formatVol(totalVolume)} titres`,
-      sub: `sur ${stocks.length} valeurs`,
+      value: formatVol(totalVolume),
+      sub: `titres · ${stocks.length} valeurs`,
       icon: BarChart3,
       iconColor: "text-purple-400",
     },
@@ -124,7 +124,7 @@ export function MarketStats({ stocks }: MarketStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
       {tiles.map((tile) => (
         <Tile key={tile.label} {...tile} />
       ))}

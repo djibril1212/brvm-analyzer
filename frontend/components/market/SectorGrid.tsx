@@ -85,7 +85,7 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
         Performance par secteur
       </p>
-      <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {sorted.map((sector) => {
           const up = sector.variation_pct > 0;
           const down = sector.variation_pct < 0;
