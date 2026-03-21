@@ -1,0 +1,79 @@
+name: BRVM Daily Pipeline
+
+on:
+  schedule:
+    # 18h30 UTC = fin de séance BRVM (ouverture 9h-14h heure Abidjan = UTC+0)
+    # Lundi–Vendredi uniquement
+    - cron: "30 18 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      session_date:
+        description: "Date de séance (YYYY-MM-DD, défaut = dernier jour de bourse)"
+        required: false
+        type: string
+      skip_ai:
+        description: "Sauter l'analyse IA (debug)"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  pipeline:
+    name: "Exécution pipeline BRVM"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "backend/requirements.txt"
+
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_REVALIDATION_URL: ${{ secrets.NEXT_REVALIDATION_URL }}
+          NEXT_REVALIDATION_SECRET: ${{ secrets.NEXT_REVALIDATION_SECRET }}
+          BRVM_BOC_BASE_URL: ${{ vars.BRVM_BOC_BASE_URL }}
+          ENVIRONMENT: production
+        run: |
+          cd backend
+          python -c "
+          import sys
+          from pipeline.run import run_pipeline
+          from datetime import date
+
+          session_date_str = '${{ github.event.inputs.session_date }}'
+          skip_ai = '${{ github.event.inputs.skip_ai }}' == 'true'
+
+          session_date = date.fromisoformat(session_date_str) if session_date_str else None
+
+          result = run_pipeline(
+              session_date=session_date,
+              skip_ai=skip_ai,
+          )
+
+          if not result.success:
+              print(f'Pipeline ÉCHOUÉ : {result.error}', file=sys.stderr)
+              sys.exit(1)
+
+          print(f'Pipeline OK en {result.duration_seconds:.1f}s — étapes : {result.steps_completed}')
+          "
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Pipeline BRVM échoué pour la séance du $(date +%Y-%m-%d)"
+          # TODO : ajouter une notification Slack/email ici
