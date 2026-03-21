@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,7 +22,12 @@ export default function RootLayout({
       className={`dark ${GeistSans.variable} ${GeistMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
-        {children}
+        {/* Fixed 48px icon-only nav — xl+ only */}
+        <LeftSidebar />
+        {/* Shift content right on xl+ to clear sidebar */}
+        <div className="xl:ml-12 min-h-screen flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );

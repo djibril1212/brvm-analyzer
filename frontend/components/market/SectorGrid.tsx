@@ -1,6 +1,5 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { formatVariation, variationColor } from "@/lib/format";
 import type { SectorIndex, StockQuote } from "@/types/brvm";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -32,7 +31,7 @@ const SECTOR_LABELS: Record<string, string> = {
   "Services Publics": "Svcs Publics",
   "SERVICES PUBLICS": "Svcs Publics",
   "Services Pub.": "Svcs Publics",
-  "Télécommunication": "Télécom",
+  Télécommunication: "Télécom",
   TELECOMMUNICATION: "Télécom",
   Énergie: "Énergie",
   Energie: "Énergie",
@@ -41,7 +40,6 @@ const SECTOR_LABELS: Record<string, string> = {
   AUTRES: "Autres",
 };
 
-// Keywords per sector for best-performer lookup
 const SECTOR_KEYWORDS: Record<string, string[]> = {
   Finance: ["banque", "bank", "assur", "financ", "crédit", "caisse", "bourse"],
   Agriculture: ["agri", "cacao", "café", "palm", "sucr", "coton", "hévéa"],
@@ -59,20 +57,22 @@ function getBestPerformer(
 ): { symbol: string; variation_pct: number } | null {
   if (!stocks.length) return null;
   const keywords = SECTOR_KEYWORDS[sectorName] ?? [];
-  const sectorStocks =
-    keywords.length > 0
-      ? stocks.filter((s) =>
-          keywords.some((kw) => s.name.toLowerCase().includes(kw))
-        )
-      : [];
-
-  // Use sector-matched stocks or fallback to all (just show best of session)
-  const pool = sectorStocks.length > 0 ? sectorStocks : null;
-  if (!pool) return null;
-
+  if (!keywords.length) return null;
+  const pool = stocks.filter((s) =>
+    keywords.some((kw) => s.name.toLowerCase().includes(kw))
+  );
+  if (!pool.length) return null;
   return pool.reduce((best, s) =>
     Math.abs(s.variation_pct) > Math.abs(best.variation_pct) ? s : best
   );
+}
+
+function getSectorStockCount(sectorName: string, stocks: StockQuote[]): number {
+  const keywords = SECTOR_KEYWORDS[sectorName] ?? [];
+  if (!keywords.length) return 0;
+  return stocks.filter((s) =>
+    keywords.some((kw) => s.name.toLowerCase().includes(kw))
+  ).length;
 }
 
 export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
@@ -82,55 +82,69 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
 
   return (
     <div>
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+      <p className="text-[14px] font-medium text-foreground mb-3">
         Performance par secteur
       </p>
-      <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-[10px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {sorted.map((sector) => {
           const up = sector.variation_pct > 0;
           const down = sector.variation_pct < 0;
           const Icon = up ? TrendingUp : down ? TrendingDown : Minus;
           const label = SECTOR_LABELS[sector.name] ?? sector.name;
           const best = getBestPerformer(sector.name, stocks);
+          const count = getSectorStockCount(sector.name, stocks);
 
           return (
-            <Card
+            <div
               key={sector.name}
-              className={`bg-card border-border min-w-0 overflow-hidden ${
-                up
-                  ? "border-l-2 border-l-emerald-400/40"
-                  : down
-                  ? "border-l-2 border-l-red-400/40"
-                  : ""
-              }`}
+              className="rounded-lg p-3 flex flex-col gap-2 min-w-0"
+              style={{
+                background: "#111526",
+                border: "0.5px solid rgba(255,255,255,0.07)",
+              }}
             >
-              <CardContent className="px-3 py-3 space-y-2">
-                <p
-                  className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide truncate"
+              {/* Top row: name + trend icon */}
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className="text-[11px] text-muted-foreground uppercase tracking-wide truncate"
                   title={sector.name}
                 >
                   {label}
-                </p>
-                <div className={`flex items-center gap-1 ${variationColor(sector.variation_pct)}`}>
-                  <Icon className="h-3 w-3 shrink-0" />
-                  <span className="font-mono text-sm font-semibold tabular-nums">
-                    {formatVariation(sector.variation_pct)}
-                  </span>
-                </div>
+                </span>
+                <Icon
+                  className={`h-3.5 w-3.5 shrink-0 ${variationColor(
+                    sector.variation_pct
+                  )}`}
+                />
+              </div>
+
+              {/* Variation — main value */}
+              <p
+                className={`font-mono text-[18px] font-semibold leading-tight tabular-nums ${variationColor(
+                  sector.variation_pct
+                )}`}
+              >
+                {formatVariation(sector.variation_pct)}
+              </p>
+
+              {/* Bottom row: stock count + best performer */}
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[11px] text-muted-foreground">
+                  {count > 0 ? `${count} valeur${count > 1 ? "s" : ""}` : ""}
+                </span>
                 {best && (
-                  <div className="flex items-center justify-between pt-1 border-t border-border/50">
-                    <span className="font-mono text-[10px] text-gold">
-                      {best.symbol}
-                    </span>
-                    <span
-                      className={`font-mono text-[10px] tabular-nums font-medium ${variationColor(best.variation_pct)}`}
-                    >
-                      {formatVariation(best.variation_pct)}
-                    </span>
-                  </div>
+                  <span
+                    className={`text-[11px] font-mono truncate ${variationColor(
+                      best.variation_pct
+                    )}`}
+                  >
+                    {best.symbol}{" "}
+                    {best.variation_pct > 0 ? "+" : ""}
+                    {best.variation_pct.toFixed(2)}%
+                  </span>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>

@@ -1,21 +1,18 @@
 import { Suspense } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { IndexCards } from "@/components/market/IndexCards";
+import { UemoaMap } from "@/components/market/UemoaMap";
+import { KpiGrid } from "@/components/market/KpiGrid";
 import { StockTabs } from "@/components/market/StockTabs";
 import { SectorGrid } from "@/components/market/SectorGrid";
 import { AnalysisSection } from "@/components/market/AnalysisSection";
 import { MarketSidebar } from "@/components/market/MarketSidebar";
-import { MarketStats } from "@/components/market/MarketStats";
 import { TickerTape } from "@/components/market/TickerTape";
 import { SearchCommand } from "@/components/market/SearchCommand";
 import { LiveBadge } from "@/components/market/LiveBadge";
 import { DashboardSkeleton } from "@/components/market/LoadingSkeleton";
 import { getLatestSession, getLatestAnalysis } from "@/lib/api";
-import { formatSessionDate } from "@/lib/format";
-import { sentimentLabel } from "@/lib/format";
+import { formatSessionDate, sentimentLabel } from "@/lib/format";
 import type { MarketSession } from "@/types/brvm";
 
 // ISR : revalidation via webhook (pipeline déclenche /api/revalidate)
@@ -29,7 +26,7 @@ async function DashboardContent() {
 
   if (session.status === "rejected") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3 text-center px-4">
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3 text-center px-4">
         <p className="text-muted-foreground text-sm">
           Données de marché indisponibles pour le moment.
         </p>
@@ -51,36 +48,52 @@ async function DashboardContent() {
 
   return (
     <>
-      {/* Ticker tape scrolling (fixed bottom) */}
+      {/* Fixed bottom ticker */}
       {stocks.length > 0 && <TickerTape stocks={stocks} />}
 
-      {/* Main layout — flex-col on mobile/tablet, flex-row on lg+ */}
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        {/* ── Main content column ── */}
-        <div className="flex-1 min-w-0 space-y-6">
-          {/* Title row — stacks on mobile */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight truncate">
-                Bourse Régionale des Valeurs Mobilières
-              </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 font-mono">
-                {formatSessionDate(s.session_date)}
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <SearchCommand stocks={stocks} />
+      {/* ── Page header ── */}
+      <header
+        className="px-5 sm:px-6 pt-5 pb-4"
+        style={{ borderBottom: "0.5px solid rgba(255,255,255,0.07)" }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 max-w-[1400px]">
+          <div>
+            <h1 className="text-[26px] sm:text-[28px] font-semibold leading-tight text-foreground tracking-tight">
+              BRVM Analyzer
+            </h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">
+              Bourse Régionale des Valeurs Mobilières
+            </p>
+          </div>
+          <div className="flex flex-col sm:items-end gap-1.5 shrink-0">
+            <p className="text-[12px] text-muted-foreground font-mono">
+              {formatSessionDate(s.session_date)}
+            </p>
+            <div className="flex items-center gap-3">
+              {stocks.length > 0 && <SearchCommand stocks={stocks} />}
               <LiveBadge />
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Indices */}
-          <IndexCards session={s} />
+      {/* ── Main content + right sidebar ── */}
+      <div className="flex flex-col xl:flex-row gap-5 px-5 sm:px-6 py-5 pb-16 max-w-[1400px] w-full">
+        {/* ── Left main zone ── */}
+        <div className="flex-1 min-w-0 space-y-6">
 
-          {/* Indicateurs de marché */}
-          {stocks.length > 0 && <MarketStats stocks={stocks} />}
+          {/* KPI block: UEMOA map + metrics grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-4">
+            <UemoaMap session={s} />
+            {stocks.length > 0 && <KpiGrid session={s} stocks={stocks} />}
+          </div>
 
-          {/* Tabs Marché / Analyse IA */}
+          {/* Sector performance */}
+          {sectors.length > 0 && (
+            <SectorGrid sectors={sectors} stocks={stocks} />
+          )}
+
+          {/* Market / AI Analysis tabs */}
           <Tabs defaultValue="market" className="space-y-4">
             <TabsList className="bg-card border border-border">
               <TabsTrigger value="market" className="text-sm">
@@ -104,11 +117,7 @@ async function DashboardContent() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="market" className="space-y-6 mt-0">
-              {sectors.length > 0 && (
-                <SectorGrid sectors={sectors} stocks={stocks} />
-              )}
-
+            <TabsContent value="market" className="space-y-4 mt-0">
               {stocks.length > 0 ? (
                 <StockTabs stocks={stocks} />
               ) : (
@@ -119,12 +128,10 @@ async function DashboardContent() {
 
               {s.announcements && (
                 <Card className="bg-card border-border">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  <CardContent className="pt-4 pb-4">
+                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
                       Annonces
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                    </p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       {s.announcements}
                     </p>
@@ -147,9 +154,23 @@ async function DashboardContent() {
               )}
             </TabsContent>
           </Tabs>
+
+          {/* Legal footer */}
+          <p className="text-[11px] text-muted-foreground/40 pb-2 leading-relaxed">
+            Source :{" "}
+            <a
+              href="https://www.brvm.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
+            >
+              www.brvm.org
+            </a>{" "}
+            · Données sous licence BRVM · Analyse IA à titre informatif uniquement.
+          </p>
         </div>
 
-        {/* ── Sidebar — full-width on mobile/tablet, fixed-width on lg+ ── */}
+        {/* ── Right sidebar ── */}
         {stocks.length > 0 && <MarketSidebar stocks={stocks} />}
       </div>
     </>
@@ -158,14 +179,8 @@ async function DashboardContent() {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 pb-16">
-        <Suspense fallback={<DashboardSkeleton />}>
-          <DashboardContent />
-        </Suspense>
-      </main>
-      <Footer />
-    </div>
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

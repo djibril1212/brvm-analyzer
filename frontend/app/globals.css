@@ -12,7 +12,7 @@
   to   { transform: translateX(-50%); }
 }
 .animate-ticker {
-  animation: ticker-scroll 120s linear infinite;
+  animation: ticker-scroll 80s linear infinite;
   width: max-content;
   will-change: transform;
 }
