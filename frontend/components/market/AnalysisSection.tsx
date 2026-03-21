@@ -2,15 +2,38 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { sentimentLabel, sentimentColor } from "@/lib/format";
-import type { DailyAnalysis } from "@/types/brvm";
-import { Sparkles, Eye, TrendingUp } from "lucide-react";
+import type { DailyAnalysis, AnalysisJson } from "@/types/brvm";
+import { Sparkles, Eye, TrendingUp, AlertTriangle, BarChart3 } from "lucide-react";
 
 interface AnalysisSectionProps {
   analysis: DailyAnalysis;
 }
 
+const profilColors: Record<string, string> = {
+  rendement: "text-emerald-400 border-emerald-400/20",
+  croissance: "text-blue-400 border-blue-400/20",
+  valeur: "text-amber-400 border-amber-400/20",
+  spéculatif: "text-purple-400 border-purple-400/20",
+};
+
+function ScoreBadge({ score }: { score: number }) {
+  const color =
+    score >= 7
+      ? "bg-emerald-500/10 text-emerald-400 border-emerald-400/20"
+      : score >= 5
+      ? "bg-amber-500/10 text-amber-400 border-amber-400/20"
+      : "bg-red-500/10 text-red-400 border-red-400/20";
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold border ${color}`}
+    >
+      {score}/10
+    </span>
+  );
+}
+
 export function AnalysisSection({ analysis }: AnalysisSectionProps) {
-  const data: import("@/types/brvm").AnalysisJson =
+  const data: AnalysisJson =
     typeof analysis.analysis_json === "string"
       ? JSON.parse(analysis.analysis_json)
       : analysis.analysis_json;
@@ -38,7 +61,6 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
             {data.resume_executif}
           </p>
 
-          {/* Analyse indices */}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -85,6 +107,17 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
                       {pick.symbole}
                     </span>
                     <span className="text-xs text-muted-foreground">{pick.nom}</span>
+                    {pick.score_opportunite !== undefined && (
+                      <ScoreBadge score={pick.score_opportunite} />
+                    )}
+                    {pick.profil_investisseur && (
+                      <Badge
+                        variant="outline"
+                        className={`text-xs capitalize ${profilColors[pick.profil_investisseur] ?? ""}`}
+                      >
+                        {pick.profil_investisseur}
+                      </Badge>
+                    )}
                     <Badge
                       variant="outline"
                       className={`ml-auto font-mono text-xs ${
@@ -100,7 +133,7 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
                   <ul className="space-y-1">
                     {pick.arguments.map((arg, j) => (
                       <li key={j} className="text-xs text-muted-foreground flex gap-2">
-                        <span className="text-primary mt-0.5">·</span>
+                        <span className="text-primary mt-0.5 shrink-0">·</span>
                         <span>{arg}</span>
                       </li>
                     ))}
@@ -111,6 +144,40 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
                 </div>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Opportunités détaillées */}
+      {data.opportunites_detaillees && data.opportunites_detaillees.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-blue-400" />
+              Opportunités détectées ({data.opportunites_detaillees.length} valeurs)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {data.opportunites_detaillees
+                .sort((a, b) => b.score - a.score)
+                .map((opp) => (
+                  <div
+                    key={opp.symbole}
+                    className="flex items-start gap-3 p-2 rounded-md bg-muted/30"
+                  >
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <span className="font-mono font-semibold text-xs text-foreground w-14 truncate">
+                        {opp.symbole}
+                      </span>
+                      <ScoreBadge score={opp.score} />
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {opp.signal}
+                    </p>
+                  </div>
+                ))}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -128,6 +195,28 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
             {data.valeurs_en_surveillance.map((v) => (
               <div key={v.symbole} className="flex gap-3 text-xs">
                 <span className="font-mono font-semibold text-foreground w-16 shrink-0">
+                  {v.symbole}
+                </span>
+                <span className="text-muted-foreground">{v.raison}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Valeurs à éviter */}
+      {data.valeurs_a_eviter && data.valeurs_a_eviter.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              Signaux négatifs
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {data.valeurs_a_eviter.map((v) => (
+              <div key={v.symbole} className="flex gap-3 text-xs">
+                <span className="font-mono font-semibold text-red-400/80 w-16 shrink-0">
                   {v.symbole}
                 </span>
                 <span className="text-muted-foreground">{v.raison}</span>

@@ -46,6 +46,8 @@ export interface AnalysisTopPick {
   nom: string;
   variation_pct: number;
   volume: number;
+  score_opportunite?: number;
+  profil_investisseur?: "rendement" | "croissance" | "valeur" | "spéculatif";
   arguments: string[];
   note_de_prudence: string;
 }
@@ -65,7 +67,13 @@ export interface AnalysisJson {
     commentaire: string;
   }>;
   top_picks: AnalysisTopPick[];
+  opportunites_detaillees?: Array<{
+    symbole: string;
+    score: number;
+    signal: string;
+  }>;
   valeurs_en_surveillance: Array<{ symbole: string; raison: string }>;
+  valeurs_a_eviter?: Array<{ symbole: string; raison: string }>;
   perspectives: string;
   disclaimer: string;
 }
