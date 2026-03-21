@@ -4,13 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { IndexCards } from "@/components/market/IndexCards";
-import { StockTable } from "@/components/market/StockTable";
-import { SectorChart } from "@/components/market/SectorChart";
+import { StockTabs } from "@/components/market/StockTabs";
+import { SectorGrid } from "@/components/market/SectorGrid";
 import { AnalysisSection } from "@/components/market/AnalysisSection";
 import { DashboardSkeleton } from "@/components/market/LoadingSkeleton";
 import { getLatestSession, getLatestAnalysis } from "@/lib/api";
-import { formatSessionDate, formatCFA } from "@/lib/format";
-import type { StockQuote, SectorIndex } from "@/types/brvm";
+import { formatSessionDate } from "@/lib/format";
+import type { MarketSession } from "@/types/brvm";
 
 // ISR : revalidation via webhook (pipeline déclenche /api/revalidate)
 export const revalidate = 86400; // fallback 24h si webhook non reçu
@@ -34,26 +34,21 @@ async function DashboardContent() {
     );
   }
 
-  const s = session.value;
-  const stocks: StockQuote[] = s.stocks ?? [];
-  const sectors: SectorIndex[] = s.sectors ?? [];
+  const s: MarketSession = session.value;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Titre séance */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           Tableau de bord
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {formatSessionDate(s.session_date)} ·{" "}
-          <span className="font-mono">
-            Cap. {formatCFA(s.market_cap, true)}
-          </span>
+          {formatSessionDate(s.session_date)}
         </p>
       </div>
 
-      {/* Indices */}
+      {/* Indices + stats séance */}
       <IndexCards session={s} />
 
       {/* Onglets : Marché / Analyse IA */}
@@ -68,43 +63,17 @@ async function DashboardContent() {
         </TabsList>
 
         <TabsContent value="market" className="space-y-6 mt-0">
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Graphique secteurs */}
-            <Card className="bg-card border-border lg:col-span-1">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  Secteurs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {sectors.length > 0 ? (
-                  <SectorChart sectors={sectors} />
-                ) : (
-                  <p className="text-xs text-muted-foreground py-8 text-center">
-                    Données sectorielles disponibles après le premier pipeline.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+          {/* Secteurs */}
+          {s.sectors?.length > 0 && <SectorGrid sectors={s.sectors} />}
 
-            {/* Tableau actions */}
-            <Card className="bg-card border-border lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  Cours des actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {stocks.length > 0 ? (
-                  <StockTable stocks={stocks} />
-                ) : (
-                  <p className="text-xs text-muted-foreground py-8 text-center">
-                    Cours disponibles après le premier pipeline.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          {/* Tables actions */}
+          {s.stocks?.length > 0 ? (
+            <StockTabs stocks={s.stocks} />
+          ) : (
+            <p className="text-xs text-muted-foreground py-8 text-center">
+              Cours disponibles après le premier pipeline.
+            </p>
+          )}
 
           {/* Annonces */}
           {s.announcements && (
