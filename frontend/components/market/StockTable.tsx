@@ -80,11 +80,19 @@ export function StockTable({ stocks, liveMap = new Map() }: StockTableProps) {
         className="w-full max-w-xs rounded-md border border-border bg-card px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
       />
 
-      <div className="rounded-lg border border-border overflow-hidden">
-        <Table>
+      <div className="rounded-lg border border-border overflow-x-auto">
+        <Table className="table-fixed min-w-[400px]">
+          <colgroup>
+            <col className="w-[80px]" />
+            <col className="hidden md:table-column" />
+            <col className="w-[100px]" />
+            <col className="w-[90px]" />
+            <col className="w-[90px] hidden sm:table-column" />
+            <col className="w-[100px] hidden lg:table-column" />
+          </colgroup>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <SortHeader label="Symbole" k="symbol" className="w-24" />
+              <SortHeader label="Symbole" k="symbol" />
               <TableHead className="text-muted-foreground hidden md:table-cell">Nom</TableHead>
               <SortHeader label="Cours" k="close" className="text-right" />
               <SortHeader label="Variation" k="variation_pct" className="text-right" />
@@ -103,8 +111,8 @@ export function StockTable({ stocks, liveMap = new Map() }: StockTableProps) {
                 <TableCell className="font-mono font-semibold text-[13px] text-gold">
                   {stock.symbol}
                 </TableCell>
-                <TableCell className="text-[13px] text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
-                  {stock.name}
+                <TableCell className="text-[13px] text-muted-foreground hidden md:table-cell overflow-hidden">
+                  <span className="block truncate">{stock.name}</span>
                 </TableCell>
                 <TableCell className="text-right font-mono text-[13px] tabular-nums text-foreground">
                   {price.toLocaleString("fr-FR")}

@@ -46,7 +46,7 @@ export function IndexCards({ session }: IndexCardsProps) {
   const declinePct = total > 0 ? ((session.declining ?? 0) / total) * 100 : 0;
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-3 grid-cols-1 sm:grid-cols-3 lg:grid-cols-5">
       {/* Index KPI cards */}
       {indices.map((idx) => {
         const up = idx.variation > 0;
@@ -55,12 +55,12 @@ export function IndexCards({ session }: IndexCardsProps) {
         return (
           <div
             key={idx.label}
-            className="rounded-lg border border-border bg-card px-4 py-3 space-y-1"
+            className="rounded-lg border border-border bg-card px-4 py-3 space-y-1 min-w-0 overflow-hidden"
           >
             <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider truncate">
               {idx.label}
             </p>
-            <p className="font-mono text-[22px] font-bold tabular-nums leading-tight text-foreground">
+            <p className="font-mono text-[22px] font-bold tabular-nums leading-tight text-foreground truncate">
               {idx.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}
             </p>
             <div className={`flex items-center gap-1 text-[13px] ${variationColor(idx.variation)}`}>
@@ -71,8 +71,8 @@ export function IndexCards({ session }: IndexCardsProps) {
         );
       })}
 
-      {/* Session breadth card */}
-      <div className="rounded-lg border border-border bg-card px-4 py-3 space-y-2 sm:col-span-2 lg:col-span-2">
+      {/* Session breadth card — full-width on tablet, 2-col on desktop */}
+      <div className="rounded-lg border border-border bg-card px-4 py-3 space-y-2 sm:col-span-3 lg:col-span-2">
         <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
           Séance · Largeur du marché
         </p>

@@ -17,15 +17,15 @@ interface StatTile {
 
 function Tile({ label, value, sub, icon: Icon, iconColor, valueColor }: StatTile) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3">
+    <div className="flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3 min-w-0 overflow-hidden">
       <div className={`mt-0.5 shrink-0 ${iconColor}`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 overflow-hidden">
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide truncate mb-0.5">
           {label}
         </p>
-        <p className={`font-mono text-sm font-semibold tabular-nums leading-tight ${valueColor ?? "text-foreground"}`}>
+        <p className={`font-mono text-sm font-semibold tabular-nums leading-tight truncate ${valueColor ?? "text-foreground"}`}>
           {value}
         </p>
         <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{sub}</p>
@@ -124,7 +124,7 @@ export function MarketStats({ stocks }: MarketStatsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
       {tiles.map((tile) => (
         <Tile key={tile.label} {...tile} />
       ))}

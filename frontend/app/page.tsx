@@ -54,21 +54,21 @@ async function DashboardContent() {
       {/* Ticker tape scrolling (fixed bottom) */}
       {stocks.length > 0 && <TickerTape stocks={stocks} />}
 
-      {/* Main layout */}
-      <div className="flex gap-6 items-start">
-        {/* ── Left column ── */}
+      {/* Main layout — flex-col on mobile/tablet, flex-row on lg+ */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        {/* ── Main content column ── */}
         <div className="flex-1 min-w-0 space-y-6">
-          {/* Title row */}
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">
+          {/* Title row — stacks on mobile */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold tracking-tight truncate">
                 Bourse Régionale des Valeurs Mobilières
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5 font-mono">
                 {formatSessionDate(s.session_date)}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <SearchCommand stocks={stocks} />
               <LiveBadge />
             </div>
@@ -149,7 +149,7 @@ async function DashboardContent() {
           </Tabs>
         </div>
 
-        {/* ── Right sidebar (lg+) ── */}
+        {/* ── Sidebar — full-width on mobile/tablet, fixed-width on lg+ ── */}
         {stocks.length > 0 && <MarketSidebar stocks={stocks} />}
       </div>
     </>
@@ -160,7 +160,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 pb-12">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 pb-16">
         <Suspense fallback={<DashboardSkeleton />}>
           <DashboardContent />
         </Suspense>

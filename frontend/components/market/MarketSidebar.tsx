@@ -126,8 +126,8 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
     .slice(0, 5);
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 xl:w-72 shrink-0">
-      <div className="sticky top-20 space-y-3">
+    <aside className="flex flex-col w-full lg:w-72 xl:w-80 lg:shrink-0">
+      <div className="lg:sticky lg:top-20 space-y-3">
         {/* Distribution chart */}
         <div className="rounded-lg border border-border bg-card px-4 pt-4 pb-2">
           <DistributionChart stocks={stocks} />
@@ -135,7 +135,7 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
 
         {/* Top stocks */}
         <div className="rounded-lg border border-border bg-card overflow-hidden">
-          <ScrollArea className="h-[calc(100vh-320px)] min-h-[360px]">
+          <ScrollArea className="max-h-[480px] lg:max-h-[calc(100vh-340px)]">
             <div className="px-4 py-3 space-y-3">
               <div>
                 <SectionHeader icon={TrendingUp} label="Top Hausses" color="text-emerald-400" />
