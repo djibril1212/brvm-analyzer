@@ -19,7 +19,7 @@ def get_boc_url(session_date: date) -> str:
     return f"https://www.brvm.org/fr/cours-de-bourse/{formatted}/telecharger"
 
 
-def download_boc(session_date: date, max_retries: int = 3, delay_minutes: int = 15) -> Path:
+def download_boc(session_date: date, max_retries: int = 3, delay_minutes: int = 2) -> Path:
     """
     Télécharge le BOC PDF pour la date donnée.
     Retente max_retries fois avec un délai de delay_minutes entre chaque tentative.
@@ -37,7 +37,7 @@ def download_boc(session_date: date, max_retries: int = 3, delay_minutes: int = 
     for attempt in range(1, max_retries + 1):
         try:
             logger.info(f"Tentative {attempt}/{max_retries} — téléchargement BOC {session_date}")
-            with httpx.Client(timeout=60, follow_redirects=True) as client:
+            with httpx.Client(timeout=60, follow_redirects=True, verify=False) as client:
                 response = client.get(url)
                 response.raise_for_status()
 
