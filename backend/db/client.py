@@ -48,7 +48,9 @@ class BRVMDatabase:
             "market_cap": session.market_cap,
             "announcements": session.announcements,
         }
-        self._client.table("market_sessions").upsert(session_row).execute()
+        self._client.table("market_sessions").upsert(
+            session_row, on_conflict="session_date"
+        ).execute()
 
         # Table stock_quotes
         stock_rows = [
@@ -56,7 +58,9 @@ class BRVMDatabase:
             for stock in session.stocks
         ]
         if stock_rows:
-            self._client.table("stock_quotes").upsert(stock_rows).execute()
+            self._client.table("stock_quotes").upsert(
+                stock_rows, on_conflict="session_date,symbol"
+            ).execute()
 
         # Table sector_indices
         sector_rows = [
@@ -64,7 +68,9 @@ class BRVMDatabase:
             for sector in session.sectors
         ]
         if sector_rows:
-            self._client.table("sector_indices").upsert(sector_rows).execute()
+            self._client.table("sector_indices").upsert(
+                sector_rows, on_conflict="session_date,name"
+            ).execute()
 
         logger.info(
             "Upsert OK — %d actions, %d secteurs",
