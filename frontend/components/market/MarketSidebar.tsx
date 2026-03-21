@@ -72,20 +72,20 @@ function StockRow({
       {showSparkline && <MiniSparkline variation={variation} />}
       {/* Symbol + name */}
       <div className="flex-1 min-w-0 overflow-hidden">
-        <div className="flex items-center gap-1">
-          <span className="font-mono font-semibold text-[12px] text-gold">
+        <div className="flex items-center gap-1 min-w-0">
+          <span className="font-mono font-semibold text-[12px] text-gold shrink-0">
             {symbol}
           </span>
           {isLive && (
-            <span className="h-1 w-1 rounded-full bg-up shrink-0" />
+            <span className="h-1.5 w-1.5 rounded-full bg-up shrink-0" />
           )}
+          <span className="text-[10px] text-muted-foreground truncate leading-tight min-w-0">
+            {name}
+          </span>
         </div>
-        <p className="text-[10px] text-muted-foreground truncate leading-tight">
-          {name}
-        </p>
       </div>
       {/* Price + variation */}
-      <div className="text-right shrink-0">
+      <div className="text-right shrink-0 pl-1">
         <p className="font-mono text-[12px] tabular-nums text-foreground leading-tight">
           {priceStr}
         </p>
