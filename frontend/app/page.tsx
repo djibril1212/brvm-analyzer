@@ -8,6 +8,7 @@ import { StockTabs } from "@/components/market/StockTabs";
 import { SectorGrid } from "@/components/market/SectorGrid";
 import { AnalysisSection } from "@/components/market/AnalysisSection";
 import { MarketSidebar } from "@/components/market/MarketSidebar";
+import { MarketStats } from "@/components/market/MarketStats";
 import { TickerTape } from "@/components/market/TickerTape";
 import { SearchCommand } from "@/components/market/SearchCommand";
 import { LiveBadge } from "@/components/market/LiveBadge";
@@ -76,17 +77,26 @@ async function DashboardContent() {
           {/* Indices */}
           <IndexCards session={s} />
 
+          {/* Indicateurs de marché */}
+          {stocks.length > 0 && <MarketStats stocks={stocks} />}
+
           {/* Tabs Marché / Analyse IA */}
           <Tabs defaultValue="market" className="space-y-4">
             <TabsList className="bg-card border border-border">
               <TabsTrigger value="market" className="text-sm">
                 Marché
               </TabsTrigger>
-              <TabsTrigger value="analysis" className="text-sm">
+              <TabsTrigger value="analysis" className="text-sm flex items-center gap-1.5">
                 Analyse IA
                 {sentiment && (
                   <span
-                    className={`ml-2 text-[10px] font-mono font-medium ${sentimentColor(sentiment)}`}
+                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                      sentiment === "haussier"
+                        ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
+                        : sentiment === "baissier"
+                        ? "text-red-400 border-red-400/30 bg-red-400/10"
+                        : "text-amber-400 border-amber-400/30 bg-amber-400/10"
+                    }`}
                   >
                     {sentimentLabel(sentiment)}
                   </span>

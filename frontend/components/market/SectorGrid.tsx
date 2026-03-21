@@ -13,19 +13,29 @@ interface SectorGridProps {
 const SECTOR_LABELS: Record<string, string> = {
   Finance: "Finance",
   FINANCES: "Finance",
+  "Services financiers": "Svcs Financiers",
+  "SERVICES FINANCIERS": "Svcs Financiers",
   Agriculture: "Agriculture",
   AGRICULTURE: "Agriculture",
   Distribution: "Distribution",
   DISTRIBUTION: "Distribution",
+  "Consommation de base": "Conso. Base",
+  "CONSOMMATION DE BASE": "Conso. Base",
+  "Consommation discrétionnaire": "Conso. Discr.",
+  "CONSOMMATION DISCRÉTIONNAIRE": "Conso. Discr.",
   Industrie: "Industrie",
+  Industriels: "Industriels",
   INDUSTRIE: "Industrie",
+  INDUSTRIELS: "Industriels",
   Transport: "Transport",
   TRANSPORT: "Transport",
-  "Services Publics": "Services Pub.",
-  "SERVICES PUBLICS": "Services Pub.",
+  "Services Publics": "Svcs Publics",
+  "SERVICES PUBLICS": "Svcs Publics",
+  "Services Pub.": "Svcs Publics",
   "Télécommunication": "Télécom",
   TELECOMMUNICATION: "Télécom",
   Énergie: "Énergie",
+  Energie: "Énergie",
   ENERGIE: "Énergie",
   Autres: "Autres",
   AUTRES: "Autres",
@@ -75,7 +85,7 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
         Performance par secteur
       </p>
-      <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+      <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
         {sorted.map((sector) => {
           const up = sector.variation_pct > 0;
           const down = sector.variation_pct < 0;
