@@ -1,0 +1,25 @@
+name: BRVM Live Scraper
+
+on:
+  schedule:
+    # Toutes les 5 min de 9h à 13h55 UTC, lun-ven
+    - cron: "*/5 9-13 * * 1-5"
+    # Dernière execution à 14h UTC
+    - cron: "0 14 * * 1-5"
+  workflow_dispatch: # déclenchement manuel possible
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Trigger live scrape on Railway
+        env:
+          RAILWAY_URL: ${{ secrets.RAILWAY_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl -s -X POST "$RAILWAY_URL/api/market/live/scrape" \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            --max-time 30 \
+            --fail-with-body
