@@ -10,7 +10,10 @@ interface AnalysisSectionProps {
 }
 
 export function AnalysisSection({ analysis }: AnalysisSectionProps) {
-  const data = analysis.analysis_json;
+  const data =
+    typeof analysis.analysis_json === "string"
+      ? JSON.parse(analysis.analysis_json)
+      : analysis.analysis_json;
 
   return (
     <div className="space-y-4">

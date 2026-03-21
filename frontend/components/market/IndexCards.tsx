@@ -11,20 +11,20 @@ export function IndexCards({ session }: IndexCardsProps) {
   const indices = [
     {
       label: "BRVM Composite",
-      value: session.composite_value,
-      variation: session.composite_variation,
+      value: session.composite.value,
+      variation: session.composite.variation_pct,
     },
     {
       label: "BRVM-30",
-      value: session.brvm30_value,
-      variation: session.brvm30_variation,
+      value: session.brvm30.value,
+      variation: session.brvm30.variation_pct,
     },
-    ...(session.prestige_value != null
+    ...(session.prestige.value != null
       ? [
           {
             label: "BRVM Prestige",
-            value: session.prestige_value,
-            variation: session.prestige_variation ?? 0,
+            value: session.prestige.value,
+            variation: session.prestige.variation_pct ?? 0,
           },
         ]
       : []),

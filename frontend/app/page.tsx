@@ -35,12 +35,8 @@ async function DashboardContent() {
   }
 
   const s = session.value;
-
-  // Stocks et secteurs via l'API
-  // Note : on les récupère depuis l'API en attendant un endpoint dédié
-  // Pour l'instant, on affiche les données de session disponibles
-  const stocks: StockQuote[] = [];
-  const sectors: SectorIndex[] = [];
+  const stocks: StockQuote[] = s.stocks ?? [];
+  const sectors: SectorIndex[] = s.sectors ?? [];
 
   return (
     <div className="space-y-8">
