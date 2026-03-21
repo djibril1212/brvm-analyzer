@@ -19,9 +19,10 @@ type SortDir = "asc" | "desc";
 
 interface StockTableProps {
   stocks: StockQuote[];
+  liveMap?: Map<string, { last_price: number | null; variation_pct: number | null }>;
 }
 
-export function StockTable({ stocks }: StockTableProps) {
+export function StockTable({ stocks, liveMap = new Map() }: StockTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("value_traded");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [filter, setFilter] = useState("");
@@ -92,7 +93,12 @@ export function StockTable({ stocks }: StockTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((stock) => (
+            {filtered.map((stock) => {
+              const live = liveMap.get(stock.symbol);
+              const price = live?.last_price ?? stock.close;
+              const variation = live?.variation_pct ?? stock.variation_pct;
+              const isLive = !!live?.last_price;
+              return (
               <TableRow key={stock.symbol} className="border-border hover:bg-muted/30">
                 <TableCell className="font-mono font-semibold text-xs">
                   {stock.symbol}
@@ -101,14 +107,17 @@ export function StockTable({ stocks }: StockTableProps) {
                   {stock.name}
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs tabular-nums">
-                  {stock.close.toLocaleString("fr-FR")}
+                  {price.toLocaleString("fr-FR")}
+                  {isLive && (
+                    <span className="ml-1 h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block align-middle" />
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <Badge
                     variant="outline"
-                    className={`font-mono text-xs tabular-nums ${variationBg(stock.variation_pct)}`}
+                    className={`font-mono text-xs tabular-nums ${variationBg(variation)}`}
                   >
-                    {formatVariation(stock.variation_pct)}
+                    {formatVariation(variation)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground hidden sm:table-cell">
@@ -118,7 +127,8 @@ export function StockTable({ stocks }: StockTableProps) {
                   {formatCFA(stock.value_traded, true)}
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>

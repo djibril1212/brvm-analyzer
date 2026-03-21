@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { StockTable } from "./StockTable";
 import { formatCFA, formatVariation, variationBg } from "@/lib/format";
+import { useLiveData } from "@/hooks/useLiveData";
 import type { StockQuote } from "@/types/brvm";
 
 interface StockTabsProps {
@@ -21,9 +22,11 @@ interface StockTabsProps {
 function MiniTable({
   stocks,
   mode,
+  liveMap,
 }: {
   stocks: StockQuote[];
   mode: "variation" | "volume";
+  liveMap: Map<string, { last_price: number | null; variation_pct: number | null }>;
 }) {
   return (
     <div className="rounded-lg border border-border overflow-hidden">
@@ -48,37 +51,44 @@ function MiniTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {stocks.map((stock) => (
-            <TableRow
-              key={stock.symbol}
-              className="border-border hover:bg-muted/30"
-            >
-              <TableCell className="font-mono font-semibold text-xs">
-                {stock.symbol}
-              </TableCell>
-              <TableCell className="text-xs text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
-                {stock.name}
-              </TableCell>
-              <TableCell className="text-right font-mono text-xs tabular-nums">
-                {stock.close.toLocaleString("fr-FR")}
-              </TableCell>
-              <TableCell className="text-right">
-                <Badge
-                  variant="outline"
-                  className={`font-mono text-xs tabular-nums ${variationBg(
-                    stock.variation_pct
-                  )}`}
-                >
-                  {formatVariation(stock.variation_pct)}
-                </Badge>
-              </TableCell>
-              {mode === "volume" && (
-                <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground hidden sm:table-cell">
-                  {formatCFA(stock.value_traded, true)}
+          {stocks.map((stock) => {
+            const live = liveMap.get(stock.symbol);
+            const price = live?.last_price ?? stock.close;
+            const variation = live?.variation_pct ?? stock.variation_pct;
+            const isLive = !!live?.last_price;
+            return (
+              <TableRow
+                key={stock.symbol}
+                className="border-border hover:bg-muted/30"
+              >
+                <TableCell className="font-mono font-semibold text-xs">
+                  {stock.symbol}
                 </TableCell>
-              )}
-            </TableRow>
-          ))}
+                <TableCell className="text-xs text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
+                  {stock.name}
+                </TableCell>
+                <TableCell className="text-right font-mono text-xs tabular-nums">
+                  {price.toLocaleString("fr-FR")}
+                  {isLive && (
+                    <span className="ml-1 h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block align-middle" />
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Badge
+                    variant="outline"
+                    className={`font-mono text-xs tabular-nums ${variationBg(variation)}`}
+                  >
+                    {formatVariation(variation)}
+                  </Badge>
+                </TableCell>
+                {mode === "volume" && (
+                  <TableCell className="text-right font-mono text-xs tabular-nums text-muted-foreground hidden sm:table-cell">
+                    {formatCFA(stock.value_traded, true)}
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
@@ -86,6 +96,8 @@ function MiniTable({
 }
 
 export function StockTabs({ stocks }: StockTabsProps) {
+  const { liveMap } = useLiveData();
+
   const topHausses = [...stocks]
     .filter((s) => s.variation_pct > 0)
     .sort((a, b) => b.variation_pct - a.variation_pct)
@@ -130,7 +142,7 @@ export function StockTabs({ stocks }: StockTabsProps) {
 
       <TabsContent value="hausses" className="mt-4">
         {topHausses.length > 0 ? (
-          <MiniTable stocks={topHausses} mode="variation" />
+          <MiniTable stocks={topHausses} mode="variation" liveMap={liveMap} />
         ) : (
           <p className="text-xs text-muted-foreground py-8 text-center">
             Aucune hausse cette séance.
@@ -140,7 +152,7 @@ export function StockTabs({ stocks }: StockTabsProps) {
 
       <TabsContent value="baisses" className="mt-4">
         {topBaisses.length > 0 ? (
-          <MiniTable stocks={topBaisses} mode="variation" />
+          <MiniTable stocks={topBaisses} mode="variation" liveMap={liveMap} />
         ) : (
           <p className="text-xs text-muted-foreground py-8 text-center">
             Aucune baisse cette séance.
@@ -150,7 +162,7 @@ export function StockTabs({ stocks }: StockTabsProps) {
 
       <TabsContent value="echanges" className="mt-4">
         {plusEchanges.length > 0 ? (
-          <MiniTable stocks={plusEchanges} mode="volume" />
+          <MiniTable stocks={plusEchanges} mode="volume" liveMap={liveMap} />
         ) : (
           <p className="text-xs text-muted-foreground py-8 text-center">
             Données de volume non disponibles.
@@ -159,7 +171,7 @@ export function StockTabs({ stocks }: StockTabsProps) {
       </TabsContent>
 
       <TabsContent value="toutes" className="mt-4">
-        <StockTable stocks={stocks} />
+        <StockTable stocks={stocks} liveMap={liveMap} />
       </TabsContent>
     </Tabs>
   );

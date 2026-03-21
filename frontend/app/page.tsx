@@ -7,6 +7,7 @@ import { IndexCards } from "@/components/market/IndexCards";
 import { StockTabs } from "@/components/market/StockTabs";
 import { SectorGrid } from "@/components/market/SectorGrid";
 import { AnalysisSection } from "@/components/market/AnalysisSection";
+import { LiveBadge } from "@/components/market/LiveBadge";
 import { DashboardSkeleton } from "@/components/market/LoadingSkeleton";
 import { getLatestSession, getLatestAnalysis } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
@@ -39,13 +40,18 @@ async function DashboardContent() {
   return (
     <div className="space-y-6">
       {/* Titre séance */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Tableau de bord
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {formatSessionDate(s.session_date)}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Tableau de bord
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {formatSessionDate(s.session_date)}
+          </p>
+        </div>
+        <div className="mt-1">
+          <LiveBadge />
+        </div>
       </div>
 
       {/* Indices + stats séance */}
