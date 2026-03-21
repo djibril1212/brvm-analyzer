@@ -1,8 +1,12 @@
-"""Point d'entrée uvicorn pour Railway/local."""
+"""
+Point d'entrée uvicorn.
+À lancer depuis la RACINE du repo (pas depuis backend/) :
+    uvicorn backend.api.main:app --reload
+"""
 
-from api.main import app  # noqa: F401
+from backend.api.main import app  # noqa: F401
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backend.api.main:app", host="0.0.0.0", port=8000, reload=True)
