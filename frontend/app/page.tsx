@@ -15,7 +15,7 @@ import { LiveBadge } from "@/components/market/LiveBadge";
 import { DashboardSkeleton } from "@/components/market/LoadingSkeleton";
 import { getLatestSession, getLatestAnalysis } from "@/lib/api";
 import { formatSessionDate } from "@/lib/format";
-import { sentimentColor, sentimentLabel } from "@/lib/format";
+import { sentimentLabel } from "@/lib/format";
 import type { MarketSession } from "@/types/brvm";
 
 // ISR : revalidation via webhook (pipeline déclenche /api/revalidate)
