@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  /* BRVM dark theme — variables CSS (Tailwind v3) */
+  :root {
+    --background: 222 47% 11%;         /* #0F172A slate très sombre */
+    --foreground: 213 31% 91%;
+
+    --card: 222 47% 15%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 222 47% 15%;
+    --popover-foreground: 213 31% 91%;
+
+    /* Vert BRVM : #2E8B57 ≈ hsl(146 50% 36%) */
+    --primary: 146 50% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 47% 18%;
+    --secondary-foreground: 213 31% 91%;
+
+    --muted: 222 47% 18%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 222 47% 18%;
+    --accent-foreground: 213 31% 91%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 20%;
+    --ring: 146 50% 36%;
+
+    /* Graphiques */
+    --chart-1: 146 50% 50%;   /* vert */
+    --chart-2: 0 84% 60%;     /* rouge */
+    --chart-3: 38 92% 55%;    /* orange */
+    --chart-4: 217 91% 60%;   /* bleu */
+    --chart-5: 270 60% 60%;   /* violet */
+
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
