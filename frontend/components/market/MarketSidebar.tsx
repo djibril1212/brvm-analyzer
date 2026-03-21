@@ -1,6 +1,7 @@
 "use client";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card } from "@/components/ui/card";
 import { DistributionChart } from "./DistributionChart";
 import { useLiveData } from "@/hooks/useLiveData";
 import { formatVariation, variationColor } from "@/lib/format";
@@ -153,24 +154,12 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
         style={{ maxHeight: "calc(100vh - 120px)" }}
       >
         {/* Distribution chart */}
-        <div
-          className="rounded-xl px-4 pt-4 pb-3"
-          style={{
-            background: "#0D1226",
-            border: "0.5px solid rgba(255,255,255,0.07)",
-          }}
-        >
+        <Card className="px-4 pt-4 pb-3 bg-[#0D1226] border-white/[0.07] rounded-xl">
           <DistributionChart stocks={stocks} />
-        </div>
+        </Card>
 
         {/* Top stocks */}
-        <div
-          className="rounded-xl overflow-hidden flex-1"
-          style={{
-            background: "#0D1226",
-            border: "0.5px solid rgba(255,255,255,0.07)",
-          }}
-        >
+        <Card className="rounded-xl overflow-hidden flex-1 bg-[#0D1226] border-white/[0.07]">
           <ScrollArea className="max-h-[480px] xl:max-h-[calc(100vh-360px)]">
             <div className="px-4 py-3 space-y-4">
               {/* Top Hausses */}
@@ -262,7 +251,7 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
               )}
             </div>
           </ScrollArea>
-        </div>
+        </Card>
       </div>
     </aside>
   );

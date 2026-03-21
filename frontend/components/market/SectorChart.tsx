@@ -1,16 +1,25 @@
 "use client";
 
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ReferenceLine,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  ResponsiveContainer,
 } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import type { SectorIndex } from "@/types/brvm";
+
+const chartConfig = {
+  variation_pct: { label: "Variation" },
+} satisfies ChartConfig;
 
 interface SectorChartProps {
   sectors: SectorIndex[];
@@ -20,12 +29,16 @@ export function SectorChart({ sectors }: SectorChartProps) {
   const data = [...sectors].sort((a, b) => b.variation_pct - a.variation_pct);
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
+    <ChartContainer config={chartConfig} className="h-[220px] w-full">
       <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 6%)" vertical={false} />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="rgba(255,255,255,0.06)"
+          vertical={false}
+        />
         <XAxis
           dataKey="name"
-          tick={{ fontSize: 10, fill: "oklch(0.62 0.008 250)" }}
+          tick={{ fontSize: 10, fill: "hsl(220 12% 48%)" }}
           axisLine={false}
           tickLine={false}
           interval={0}
@@ -35,34 +48,38 @@ export function SectorChart({ sectors }: SectorChartProps) {
         />
         <YAxis
           tickFormatter={(v) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`}
-          tick={{ fontSize: 10, fill: "oklch(0.62 0.008 250)", fontFamily: "var(--font-mono)" }}
+          tick={{
+            fontSize: 10,
+            fill: "hsl(220 12% 48%)",
+            fontFamily: "var(--font-geist-mono)",
+          }}
           axisLine={false}
           tickLine={false}
           width={52}
         />
-        <Tooltip
-          contentStyle={{
-            background: "oklch(0.18 0.008 250)",
-            border: "1px solid oklch(1 0 0 / 10%)",
-            borderRadius: "6px",
-            fontSize: 12,
-          }}
-          formatter={(value) => {
-            const v = Number(value);
-            return [`${v > 0 ? "+" : ""}${v.toFixed(2)}%`, "Variation"] as [string, string];
-          }}
-          labelStyle={{ color: "oklch(0.94 0.004 250)", fontWeight: 600 }}
-          itemStyle={{ color: "oklch(0.62 0.008 250)" }}
+        <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+        <ChartTooltip
+          cursor={{ fill: "rgba(255,255,255,0.04)" }}
+          content={
+            <ChartTooltipContent
+              nameKey="variation_pct"
+              formatter={(value) => {
+                const v = Number(value);
+                return [`${v > 0 ? "+" : ""}${v.toFixed(2)}%`, "Variation"];
+              }}
+            />
+          }
         />
-        <ReferenceLine y={0} stroke="oklch(1 0 0 / 15%)" />
-        <Bar
-          dataKey="variation_pct"
-          radius={[3, 3, 0, 0]}
-          fill="oklch(0.55 0.15 155)"
-          // Couleur conditionnelle via Cell n'est pas supportée simplement sans import Cell
-          // On utilise une couleur unique (vert BRVM) — simplifié
-        />
+        <Bar dataKey="variation_pct" radius={[3, 3, 0, 0]}>
+          {data.map((d, i) => (
+            <Cell
+              key={i}
+              fill={d.variation_pct >= 0 ? "#22c55e" : "#ef4444"}
+              fillOpacity={0.85}
+            />
+          ))}
+        </Bar>
       </BarChart>
-    </ResponsiveContainer>
+    </ChartContainer>
   );
 }

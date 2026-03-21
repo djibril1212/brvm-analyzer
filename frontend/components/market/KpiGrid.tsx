@@ -6,6 +6,7 @@ import {
   TrendingDown,
   Landmark,
 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { formatCFA, formatVariation, variationColor } from "@/lib/format";
 import type { MarketSession, StockQuote } from "@/types/brvm";
 
@@ -111,13 +112,7 @@ export function KpiGrid({ session, stocks }: KpiGridProps) {
   ];
 
   return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: "#0D1226",
-        border: "0.5px solid rgba(255,255,255,0.07)",
-      }}
-    >
+    <Card className="overflow-hidden rounded-xl bg-[#0D1226] border-white/[0.07]">
       <div className="grid grid-cols-3">
         {tiles.map((tile, i) => (
           <Tile
@@ -128,6 +123,6 @@ export function KpiGrid({ session, stocks }: KpiGridProps) {
           />
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

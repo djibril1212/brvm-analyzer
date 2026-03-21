@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatCFA, formatVariation, formatVolume, variationBg } from "@/lib/format";
+import { Input } from "@/components/ui/input";
 import type { StockQuote } from "@/types/brvm";
 import { ArrowUpDown } from "lucide-react";
 
@@ -72,12 +73,12 @@ export function StockTable({ stocks, liveMap = new Map() }: StockTableProps) {
 
   return (
     <div className="space-y-3">
-      <input
+      <Input
         type="text"
         placeholder="Filtrer par symbole ou nom…"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        className="w-full max-w-xs rounded-md border border-border bg-card px-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+        className="max-w-xs h-8 text-sm"
       />
 
       <div className="rounded-lg border border-border overflow-x-auto">

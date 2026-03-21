@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
   CommandInput,
@@ -35,16 +36,17 @@ export function SearchCommand({ stocks }: SearchCommandProps) {
 
   return (
     <>
-      <button
+      <Button
+        variant="outline"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border bg-card/50 text-muted-foreground hover:border-ring hover:text-foreground transition-colors text-xs w-44 sm:w-56"
+        className="h-8 w-44 sm:w-56 justify-start gap-2 bg-card/50 text-muted-foreground hover:text-foreground text-xs px-3 font-normal"
       >
         <Search className="h-3 w-3 shrink-0" />
         <span className="flex-1 text-left">Rechercher...</span>
-        <kbd className="text-[10px] font-mono bg-muted px-1 py-0.5 rounded border border-border">
+        <kbd className="text-[10px] font-mono bg-muted px-1 py-0.5 rounded border border-border ml-auto">
           ⌘K
         </kbd>
-      </button>
+      </Button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Chercher une action BRVM..." />

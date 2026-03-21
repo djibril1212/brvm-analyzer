@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { formatVariation, variationColor } from "@/lib/format";
 import type { SectorIndex, StockQuote } from "@/types/brvm";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -95,13 +96,9 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
           const count = getSectorStockCount(sector.name, stocks);
 
           return (
-            <div
+            <Card
               key={sector.name}
-              className="rounded-lg p-3 flex flex-col gap-2 min-w-0"
-              style={{
-                background: "#111526",
-                border: "0.5px solid rgba(255,255,255,0.07)",
-              }}
+              className="p-3 flex flex-col gap-2 min-w-0 bg-card border-white/[0.07] rounded-lg"
             >
               {/* Top row: name + trend icon */}
               <div className="flex items-center justify-between gap-2">
@@ -144,7 +141,7 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
                   </span>
                 )}
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>

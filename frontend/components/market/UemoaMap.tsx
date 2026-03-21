@@ -1,3 +1,4 @@
+import { Card, CardContent } from "@/components/ui/card";
 import { formatVariation, variationColor } from "@/lib/format";
 import type { MarketSession } from "@/types/brvm";
 
@@ -22,14 +23,11 @@ export function UemoaMap({ session }: UemoaMapProps) {
   const dotColor = up ? "#22C55E" : "#EF4444";
 
   return (
-    <div
-      className="rounded-xl p-4 flex flex-col"
-      style={{
-        background: "#0D1226",
-        border: "0.5px solid rgba(255,255,255,0.07)",
-        minHeight: 200,
-      }}
+    <Card
+      className="rounded-xl bg-[#0D1226] border-white/[0.07] flex flex-col"
+      style={{ minHeight: 200 }}
     >
+    <CardContent className="p-4 flex flex-col h-full gap-0">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
@@ -125,6 +123,7 @@ export function UemoaMap({ session }: UemoaMapProps) {
           {session.unchanged} stables
         </span>
       </div>
-    </div>
+    </CardContent>
+    </Card>
   );
 }
