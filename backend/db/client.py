@@ -162,6 +162,25 @@ class BRVMDatabase:
             "sectors": sectors_resp.data,
         }
 
+    def upsert_live_quotes(self, quotes: list[dict[str, Any]]) -> None:
+        """Insère ou met à jour les cours live (one-shot scrape)."""
+        if not quotes:
+            return
+        self._client.table("live_quotes").upsert(
+            quotes, on_conflict="ticker"
+        ).execute()
+        logger.info("Live quotes upsertées: %d actions", len(quotes))
+
+    def get_live_quotes(self) -> list[dict[str, Any]]:
+        """Retourne les derniers cours live disponibles."""
+        response = (
+            self._client.table("live_quotes")
+            .select("*")
+            .order("ticker")
+            .execute()
+        )
+        return response.data or []
+
     def get_stock_history(
         self, symbol: str, limit: int = 30
     ) -> list[dict[str, Any]]:

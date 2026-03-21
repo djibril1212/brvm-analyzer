@@ -96,6 +96,52 @@ async def get_latest_analysis(request: Request) -> dict[str, Any]:
     return response.data[0]
 
 
+@router.get("/live")
+@limiter.limit("120/minute")
+async def get_live_quotes(request: Request) -> dict[str, Any]:
+    """
+    Retourne les cours en temps réel (scrape toutes les 5min pendant la séance).
+    Inclut market_open pour indiquer si la BRVM est actuellement ouverte.
+    """
+    from ...pipeline.live_scraper import is_market_open
+    db = get_client()
+    quotes = db.get_live_quotes()
+    return {
+        "market_open": is_market_open(),
+        "quotes": quotes,
+        "count": len(quotes),
+    }
+
+
+@router.post("/live/scrape")
+@limiter.limit("30/minute")
+async def trigger_live_scrape(request: Request) -> dict[str, Any]:
+    """
+    Déclenche un scrape live immédiat.
+    Appelé par le cron Railway toutes les 5min pendant la séance.
+    """
+    import os
+    from ...pipeline.live_scraper import run_live_scrape, is_market_open
+
+    # Vérification du secret cron
+    secret = request.headers.get("x-cron-secret", "")
+    expected = os.getenv("CRON_SECRET", "")
+    if expected and secret != expected:
+        from fastapi import HTTPException, status
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Secret invalide")
+
+    if not is_market_open():
+        return {"status": "skipped", "reason": "Marché fermé"}
+
+    quotes = await run_live_scrape()
+    if not quotes:
+        return {"status": "error", "reason": "Aucune donnée récupérée"}
+
+    db = get_client()
+    db.upsert_live_quotes(quotes)
+    return {"status": "ok", "count": len(quotes)}
+
+
 @router.get("/analysis/{session_date}")
 @limiter.limit(RATE_LIMIT)
 async def get_analysis(
