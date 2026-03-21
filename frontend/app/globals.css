@@ -8,6 +8,20 @@
   }
 }
 
+/* Ticker tape animation */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-ticker {
+  animation: ticker-scroll 120s linear infinite;
+  width: max-content;
+  will-change: transform;
+}
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
 @layer base {
   /* BRVM dark theme — variables CSS (Tailwind v3) */
   :root {
