@@ -12,14 +12,15 @@ from datetime import date
 from ..pipeline.models import MarketSession, StockData
 
 
-SYSTEM_PROMPT = """Tu es un analyste financier spécialisé dans les marchés boursiers africains, \
-expert de la BRVM (Bourse Régionale des Valeurs Mobilières) qui dessert l'UEMOA (8 pays d'Afrique de l'Ouest).
+SYSTEM_PROMPT = """Tu es un analyste financier senior spécialisé dans les marchés boursiers africains, \
+expert de la BRVM (Bourse Régionale des Valeurs Mobilières) depuis plus de 15 ans. \
+Tu maîtrises l'analyse fondamentale et technique des 47 sociétés cotées sur la BRVM.
 
 RÈGLES ABSOLUES — NON NÉGOCIABLES :
 1. Tu n'utilises QUE les données fournies dans le prompt. Aucun chiffre inventé.
-2. Tu n'utilises JAMAIS les verbes "achetez", "vendez", "investissez" ou tout autre conseil d'achat/vente direct.
-3. Toutes tes analyses doivent se terminer par : "Ceci n'est pas un conseil en investissement."
-4. Ton analyse est destinée à des investisseurs informés souhaitant comprendre les tendances du marché.
+2. Tu n'utilises JAMAIS les verbes "achetez", "vendez" ou "investissez" comme conseil direct.
+3. Utilise des formulations neutres : "présente un profil attractif", "mérite attention", "affiche des signaux positifs".
+4. Ton analyse est destinée à des investisseurs informés. Sois précis, factuel, et utile.
 5. Tu respectes scrupuleusement les contraintes légales CREPMF sur la communication financière.
 6. Tu réponds UNIQUEMENT en JSON valide selon le schéma fourni.
 
@@ -29,7 +30,14 @@ CONTEXTE MARCHÉ :
 - 47 actions cotées réparties en 7 secteurs.
 - Indices principaux : BRVM Composite, BRVM 30, BRVM Prestige.
 - Variation quotidienne plafonnée à ±7,5% par la réglementation CREPMF.
-- Horaires : 9h-14h (heure d'Abidjan, UTC+0)."""
+- Horaires : 9h-14h (heure d'Abidjan, UTC+0).
+
+GRILLE DE NOTATION (score_opportunite 0-10) :
+- Valorisation (PER) : PER<10 = 3pts, PER 10-15 = 2pts, PER 15-20 = 1pt, PER>20 ou N/A = 0pt
+- Rendement dividende : >5% = 3pts, 3-5% = 2pts, 1-3% = 1pt, <1% = 0pt
+- Momentum prix : variation>3% = 2pts, 0-3% = 1pt, négatif = 0pt
+- Liquidité : valeur_echangee>5M XOF = 2pts, 1-5M = 1pt, <1M = 0pt
+Explique chaque dimension dans le champ arguments avec les chiffres précis."""
 
 
 def build_analysis_prompt(session: MarketSession) -> str:
@@ -52,17 +60,20 @@ def build_analysis_prompt(session: MarketSession) -> str:
 
 ## INSTRUCTIONS
 
-Produis une analyse structurée de la séance en JSON valide selon le schéma ci-dessus.
+Produis une analyse COMPLÈTE et DÉTAILLÉE en JSON valide selon le schéma ci-dessus.
 
-Pour le champ `top_picks` (2-3 valeurs max) :
-- Critères de sélection (pondération) :
-  * PER attractif (≤15 ou secteur) : 25%
-  * Rendement dividende élevé : 25%
-  * Momentum positif (variation + volume) : 20%
-  * Liquidité (volume échangé) : 15%
-  * Catalyseur identifiable : 15%
-- N'inclure une valeur que si tu peux argumenter sur au moins 3 critères avec les données fournies.
-- Ne jamais recommander d'achat. Utiliser : "présente des caractéristiques intéressantes pour les investisseurs qui..."
+### top_picks (3-5 valeurs) :
+- Applique la grille de notation définie dans le system prompt.
+- Chaque argument doit citer les chiffres exacts : "PER de 8,2x — sous la médiane sectorielle de 12x", "Rendement 6,4% sur la base d'un dividende de 450 XOF".
+- Inclure un champ `score_opportunite` (entier 0-10) calculé selon la grille.
+- Inclure `profil_investisseur` : "rendement", "croissance", "valeur", ou "spéculatif".
+- Minimum 4 arguments par valeur, chacun avec chiffres précis tirés des données.
+
+### opportunites_detaillees — SECTION OBLIGATOIRE :
+Scanne TOUTES les 47 actions. Pour chaque action avec un signal positif (PER<15 OU rendement>3% OU variation>2%), inclure une entrée avec symbole, score (0-10), et un commentaire de 1 phrase précis.
+
+### valeurs_a_eviter (nouveau) :
+2-3 valeurs présentant des signaux négatifs (faible liquidité, variation forte sans volume, PER excessif), avec la raison précise.
 
 Pour le champ `market_sentiment` : "haussier" | "baissier" | "neutre" | "mitigé"
 
@@ -129,17 +140,17 @@ def _get_output_schema() -> dict:
     return {
         "date": "YYYY-MM-DD",
         "market_sentiment": "haussier | baissier | neutre | mitigé",
-        "resume_executif": "string (2-3 phrases, synthèse de la séance)",
+        "resume_executif": "string (3-4 phrases, synthèse factuelle et chiffrée de la séance)",
         "analyse_indices": {
-            "composite": "string (analyse de l'indice composite)",
-            "brvm30": "string (analyse du BRVM-30)",
-            "contexte_regional": "string (contexte UEMOA si pertinent)",
+            "composite": "string (analyse avec valeur, variation, tendance)",
+            "brvm30": "string (analyse avec valeur, variation, tendance)",
+            "contexte_regional": "string (contexte UEMOA, macro si pertinent)",
         },
         "top_secteurs": [
             {
                 "nom": "string",
                 "variation_pct": "float",
-                "commentaire": "string (1-2 phrases)",
+                "commentaire": "string (1-2 phrases avec chiffres)",
             }
         ],
         "top_picks": [
@@ -148,16 +159,33 @@ def _get_output_schema() -> dict:
                 "nom": "string",
                 "variation_pct": "float",
                 "volume": "int",
-                "arguments": ["string (critère : explication)"],
-                "note_de_prudence": "string (toujours présente)",
+                "score_opportunite": "int (0-10, calculé selon la grille)",
+                "profil_investisseur": "rendement | croissance | valeur | spéculatif",
+                "arguments": [
+                    "string — MINIMUM 4 arguments, chacun avec chiffres précis"
+                ],
+                "note_de_prudence": "string (risques spécifiques à cette valeur)",
+            }
+        ],
+        "opportunites_detaillees": [
+            {
+                "symbole": "string",
+                "score": "int (0-10)",
+                "signal": "string (1 phrase précise avec le chiffre clé)",
             }
         ],
         "valeurs_en_surveillance": [
             {
                 "symbole": "string",
-                "raison": "string",
+                "raison": "string (signal positif à surveiller)",
             }
         ],
-        "perspectives": "string (2-3 phrases sur les prochaines séances)",
+        "valeurs_a_eviter": [
+            {
+                "symbole": "string",
+                "raison": "string (signal négatif précis avec chiffre)",
+            }
+        ],
+        "perspectives": "string (3-4 phrases sur les catalyseurs et risques à venir)",
         "disclaimer": "Ceci n'est pas un conseil en investissement.",
     }
