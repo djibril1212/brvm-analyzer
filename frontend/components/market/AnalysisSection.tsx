@@ -10,7 +10,7 @@ interface AnalysisSectionProps {
 }
 
 export function AnalysisSection({ analysis }: AnalysisSectionProps) {
-  const data =
+  const data: import("@/types/brvm").AnalysisJson =
     typeof analysis.analysis_json === "string"
       ? JSON.parse(analysis.analysis_json)
       : analysis.analysis_json;
