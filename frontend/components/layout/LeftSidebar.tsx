@@ -8,7 +8,17 @@ import {
   Bell,
   Settings,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 
 const NAV = [
   { icon: LayoutDashboard, label: "Tableau de bord", active: true },
@@ -20,52 +30,71 @@ const NAV = [
 
 export function LeftSidebar() {
   return (
-    <aside
-      className="hidden xl:flex flex-col fixed left-0 top-0 bottom-0 w-12 z-50 items-center py-3 gap-1"
-      style={{
-        background: "#0D1226",
-        borderRight: "0.5px solid rgba(255,255,255,0.07)",
-      }}
-    >
-      {/* Gold "B" logo */}
-      <div
-        className="w-7 h-7 rounded flex items-center justify-center font-bold text-[13px] text-black shrink-0 mb-3"
-        style={{
-          background:
-            "linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #A87A28 100%)",
-        }}
-      >
-        B
-      </div>
+    <Sidebar collapsible="icon" variant="sidebar">
+      {/* Logo */}
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center gap-2 px-1 py-1">
+              <div
+                className="w-7 h-7 rounded flex items-center justify-center font-bold text-[13px] text-black shrink-0"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #A87A28 100%)",
+                }}
+              >
+                B
+              </div>
+              <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+                <span className="font-semibold text-sm leading-none">
+                  BRVM
+                </span>
+                <span className="text-xs text-muted-foreground leading-none mt-0.5">
+                  Analyzer
+                </span>
+              </div>
+            </div>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-      {/* Nav icons */}
-      <nav className="flex flex-col gap-1 flex-1 w-full items-center">
-        {NAV.map(({ icon: Icon, label, active }) => (
-          <Button
-            key={label}
-            variant="ghost"
-            size="icon"
-            title={label}
-            className={
-              active
-                ? "text-[#C9A84C] bg-[#C9A84C]/10 hover:bg-[#C9A84C]/15 hover:text-[#C9A84C]"
-                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-            }
-          >
-            <Icon className="h-4 w-4" />
-          </Button>
-        ))}
-      </nav>
+      {/* Nav */}
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {NAV.map(({ icon: Icon, label, active }) => (
+                <SidebarMenuItem key={label}>
+                  <SidebarMenuButton
+                    isActive={active}
+                    tooltip={label}
+                    className={
+                      active
+                        ? "text-[#C9A84C]"
+                        : ""
+                    }
+                  >
+                    <Icon />
+                    <span>{label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-      {/* Settings pinned at bottom */}
-      <Button
-        variant="ghost"
-        size="icon"
-        title="Paramètres"
-        className="text-muted-foreground hover:text-foreground hover:bg-white/5"
-      >
-        <Settings className="h-4 w-4" />
-      </Button>
-    </aside>
+      {/* Footer */}
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Paramètres">
+              <Settings />
+              <span>Paramètres</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

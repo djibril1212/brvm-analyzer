@@ -59,6 +59,16 @@
     --chart-5: 270 60% 60%;  /* purple */
 
     --radius: 0.5rem;
+
+    /* Sidebar — dark gold theme */
+    --sidebar-background: 230 46% 7%;   /* slightly darker than background */
+    --sidebar-foreground: 220 20% 92%;
+    --sidebar-primary:    41  52% 54%;   /* gold */
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent:     230 30% 14%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border:     230 30% 14%;
+    --sidebar-ring:       41  52% 54%;
   }
 
   * { @apply border-border; }

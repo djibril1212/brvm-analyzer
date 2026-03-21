@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { UemoaMap } from "@/components/market/UemoaMap";
 import { KpiGrid } from "@/components/market/KpiGrid";
 import { StockTabs } from "@/components/market/StockTabs";
@@ -51,36 +53,41 @@ async function DashboardContent() {
       {/* Fixed bottom ticker */}
       {stocks.length > 0 && <TickerTape stocks={stocks} />}
 
-      {/* ── Page header ── */}
-      <header
-        className="px-5 sm:px-6 pt-5 pb-4"
-        style={{ borderBottom: "0.5px solid rgba(255,255,255,0.07)" }}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 max-w-[1400px]">
+      {/* ── Sticky top header ── */}
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 bg-background border-b border-border px-3 pr-5">
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
+          <Separator orientation="vertical" className="h-4" />
+        </div>
+
+        {/* Search — centered */}
+        <div className="flex-1 flex justify-center">
+          {stocks.length > 0 && <SearchCommand stocks={stocks} />}
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-3 shrink-0">
+          <p className="hidden sm:block text-[12px] text-muted-foreground font-mono">
+            {formatSessionDate(s.session_date)}
+          </p>
+          <LiveBadge />
+        </div>
+      </header>
+
+      {/* ── Main content + right sidebar ── */}
+      <div className="flex flex-col xl:flex-row gap-5 px-4 sm:px-6 py-5 pb-16 w-full">
+        {/* ── Left main zone ── */}
+        <div className="flex-1 min-w-0 space-y-6">
+
+          {/* Page title */}
           <div>
-            <h1 className="text-[26px] sm:text-[28px] font-semibold leading-tight text-foreground tracking-tight">
-              BRVM Analyzer
+            <h1 className="text-[22px] font-semibold leading-tight text-foreground tracking-tight">
+              BRVM
             </h1>
             <p className="text-[13px] text-muted-foreground mt-0.5">
               Bourse Régionale des Valeurs Mobilières
             </p>
           </div>
-          <div className="flex flex-col sm:items-end gap-1.5 shrink-0">
-            <p className="text-[12px] text-muted-foreground font-mono">
-              {formatSessionDate(s.session_date)}
-            </p>
-            <div className="flex items-center gap-3">
-              {stocks.length > 0 && <SearchCommand stocks={stocks} />}
-              <LiveBadge />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* ── Main content + right sidebar ── */}
-      <div className="flex flex-col xl:flex-row gap-5 px-5 sm:px-6 py-5 pb-16 max-w-[1400px] w-full">
-        {/* ── Left main zone ── */}
-        <div className="flex-1 min-w-0 space-y-6">
 
           {/* KPI block: UEMOA map + metrics grid */}
           <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-4">

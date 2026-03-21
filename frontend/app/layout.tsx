@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import "./globals.css";
 
@@ -22,12 +24,12 @@ export default function RootLayout({
       className={`dark ${GeistSans.variable} ${GeistMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
-        {/* Fixed 48px icon-only nav — xl+ only */}
-        <LeftSidebar />
-        {/* Shift content right on xl+ to clear sidebar */}
-        <div className="xl:ml-12 min-h-screen flex flex-col">
-          {children}
-        </div>
+        <SidebarProvider defaultOpen={false}>
+          <LeftSidebar />
+          <SidebarInset className="min-h-screen flex flex-col overflow-x-hidden">
+            {children}
+          </SidebarInset>
+        </SidebarProvider>
       </body>
     </html>
   );
