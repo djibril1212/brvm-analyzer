@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { DistributionChart } from "./DistributionChart";
 import { useLiveData } from "@/hooks/useLiveData";
-import { formatVariation, variationColor } from "@/lib/format";
+import { formatVariation } from "@/lib/format";
 import type { StockQuote } from "@/types/brvm";
 import { TrendingUp, TrendingDown, BarChart2 } from "lucide-react";
 
@@ -12,24 +12,22 @@ interface MarketSidebarProps {
   stocks: StockQuote[];
 }
 
-/** 40×20 SVG sparkline — simple 2-point trend line */
+/** Simple SVG sparkline — 40×16 */
 function MiniSparkline({ variation }: { variation: number }) {
   const up = variation > 0.5;
   const down = variation < -0.5;
-  const color = up ? "#22C55E" : down ? "#EF4444" : "#6b7280";
-  const points = up
-    ? "0,16 14,10 28,5 40,2"
+  const color = up
+    ? "var(--color-gain)"
     : down
-    ? "0,4 14,8 28,13 40,18"
-    : "0,10 13,10 27,10 40,10";
+    ? "var(--color-loss)"
+    : "hsl(var(--muted-foreground))";
+  const points = up
+    ? "0,14 12,9 26,4 40,1"
+    : down
+    ? "0,2 12,6 26,11 40,15"
+    : "0,8 13,8 27,8 40,8";
   return (
-    <svg
-      width={40}
-      height={20}
-      viewBox="0 0 40 20"
-      fill="none"
-      className="shrink-0"
-    >
+    <svg width={40} height={16} viewBox="0 0 40 16" fill="none" className="shrink-0">
       <polyline
         points={points}
         stroke={color}
@@ -65,35 +63,42 @@ function StockRow({
       ? `${Math.round(price / 1000)}k`
       : price.toLocaleString("fr-FR");
 
+  const varColor =
+    variation > 0
+      ? "var(--color-gain)"
+      : variation < 0
+      ? "var(--color-loss)"
+      : "hsl(var(--muted-foreground))";
+
   return (
     <div className="flex items-center gap-2 py-1.5 min-w-0">
-      <span className="text-[10px] text-muted-foreground/40 font-mono w-3 shrink-0 text-center tabular-nums">
+      <span className="text-[10px] text-muted-foreground font-mono w-3 shrink-0 text-center tabular-nums">
         {rank}
       </span>
       {showSparkline && <MiniSparkline variation={variation} />}
-      {/* Symbol + name */}
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-1 min-w-0">
-          <span className="font-mono font-semibold text-[12px] text-gold shrink-0">
+          <span className="font-mono font-semibold text-[12px] text-foreground shrink-0">
             {symbol}
           </span>
           {isLive && (
-            <span className="h-1.5 w-1.5 rounded-full bg-up shrink-0" />
+            <span
+              className="h-1.5 w-1.5 rounded-full shrink-0"
+              style={{ background: "var(--color-gain)" }}
+            />
           )}
           <span className="text-[10px] text-muted-foreground truncate leading-tight min-w-0">
             {name}
           </span>
         </div>
       </div>
-      {/* Price + variation */}
       <div className="text-right shrink-0 pl-1">
         <p className="font-mono text-[12px] tabular-nums text-foreground leading-tight">
           {priceStr}
         </p>
         <p
-          className={`font-mono text-[11px] tabular-nums font-medium leading-tight ${variationColor(
-            variation
-          )}`}
+          className="font-mono text-[11px] tabular-nums font-medium leading-tight"
+          style={{ color: varColor }}
         >
           {formatVariation(variation)}
         </p>
@@ -109,12 +114,15 @@ function SectionHeader({
 }: {
   icon: React.ElementType;
   label: string;
-  color: string;
+  color?: string;
 }) {
   return (
     <div className="flex items-center gap-1.5 mb-1">
-      <Icon className={`h-3 w-3 ${color}`} />
-      <span className="text-[11px] font-semibold text-foreground tracking-wide">
+      <Icon
+        className="h-3.5 w-3.5 shrink-0"
+        style={{ color: color ?? "hsl(var(--muted-foreground))" }}
+      />
+      <span className="text-xs font-semibold text-foreground tracking-wide">
         {label}
       </span>
     </div>
@@ -154,12 +162,12 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
         style={{ maxHeight: "calc(100vh - 120px)" }}
       >
         {/* Distribution chart */}
-        <Card className="px-4 pt-4 pb-3 bg-[#0D1226] border-white/[0.07] rounded-xl">
+        <Card className="px-4 pt-4 pb-3 rounded-xl border-border bg-card shadow-sm">
           <DistributionChart stocks={stocks} />
         </Card>
 
         {/* Top stocks */}
-        <Card className="rounded-xl overflow-hidden flex-1 bg-[#0D1226] border-white/[0.07]">
+        <Card className="rounded-xl overflow-hidden flex-1 border-border bg-card shadow-sm">
           <ScrollArea className="max-h-[480px] xl:max-h-[calc(100vh-360px)]">
             <div className="px-4 py-3 space-y-4">
               {/* Top Hausses */}
@@ -167,12 +175,9 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
                 <SectionHeader
                   icon={TrendingUp}
                   label="Top Hausses"
-                  color="text-up"
+                  color="var(--color-gain)"
                 />
-                <div
-                  className="divide-y"
-                  style={{ borderColor: "rgba(255,255,255,0.05)" }}
-                >
+                <div className="divide-y divide-border/60">
                   {topHausses.map((s, i) => (
                     <StockRow
                       key={s.symbol}
@@ -187,22 +192,16 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
                 </div>
               </div>
 
-              {/* Divider */}
-              <div
-                style={{ borderTop: "0.5px solid rgba(255,255,255,0.07)" }}
-              />
+              <div className="border-t border-border/60" />
 
               {/* Top Baisses */}
               <div>
                 <SectionHeader
                   icon={TrendingDown}
                   label="Top Baisses"
-                  color="text-down"
+                  color="var(--color-loss)"
                 />
-                <div
-                  className="divide-y"
-                  style={{ borderColor: "rgba(255,255,255,0.05)" }}
-                >
+                <div className="divide-y divide-border/60">
                   {topBaisses.map((s, i) => (
                     <StockRow
                       key={s.symbol}
@@ -217,22 +216,16 @@ export function MarketSidebar({ stocks }: MarketSidebarProps) {
                 </div>
               </div>
 
-              {/* Plus Échangés */}
               {plusEchanges.length > 0 && (
                 <>
-                  <div
-                    style={{ borderTop: "0.5px solid rgba(255,255,255,0.07)" }}
-                  />
+                  <div className="border-t border-border/60" />
                   <div>
                     <SectionHeader
                       icon={BarChart2}
                       label="Plus Échangés"
-                      color="text-blue-400"
+                      color="var(--color-data-blue)"
                     />
-                    <div
-                      className="divide-y"
-                      style={{ borderColor: "rgba(255,255,255,0.05)" }}
-                    >
+                    <div className="divide-y divide-border/60">
                       {plusEchanges.map((s, i) => (
                         <StockRow
                           key={s.symbol}

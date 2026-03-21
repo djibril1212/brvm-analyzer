@@ -4,6 +4,9 @@
 
 @layer utilities {
   .text-balance { text-wrap: balance; }
+  .text-gain { color: var(--color-gain); }
+  .text-loss { color: var(--color-loss); }
+  .text-data-blue { color: var(--color-data-blue); }
 }
 
 /* Ticker tape animation */
@@ -19,9 +22,65 @@
 .animate-ticker:hover { animation-play-state: paused; }
 
 @layer base {
-  /* ── BRVM Analyzer — Dark gold theme ── */
+  /* ── BRVM Analyzer — Light theme (default) ── */
   :root {
     /* Backgrounds */
+    --background:  210 25% 97%;   /* #F4F6FA */
+    --card:        0 0% 100%;     /* #FFFFFF */
+    --card-foreground: 224 44% 12%;
+
+    --popover:     0 0% 100%;
+    --popover-foreground: 224 44% 12%;
+
+    --foreground:  224 44% 12%;   /* #0C1225 dark navy */
+
+    /* Gold primary */
+    --primary:      41 52% 46%;   /* #B8922E slightly darker gold for light bg */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary:   210 20% 94%;
+    --secondary-foreground: 224 44% 12%;
+
+    --muted:       210 20% 94%;
+    --muted-foreground: 220 10% 50%;  /* #7A8090 */
+
+    --accent:      210 20% 92%;
+    --accent-foreground: 224 44% 12%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border:      220 14% 88%;
+    --input:       220 14% 88%;
+    --ring:        41 52% 46%;
+
+    /* Chart colors */
+    --chart-1: 142 71% 42%;  /* green */
+    --chart-2: 0   84% 58%;  /* red */
+    --chart-3: 41  52% 46%;  /* gold */
+    --chart-4: 217 91% 58%;  /* blue */
+    --chart-5: 270 60% 58%;  /* purple */
+
+    --radius: 0.5rem;
+
+    /* Semantic financial colors */
+    --color-gain:      #16a34a;  /* green-600 — visible on white */
+    --color-loss:      #dc2626;  /* red-600 — visible on white */
+    --color-data-blue: #2563eb;  /* blue-600 */
+
+    /* Sidebar — light */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 224 44% 12%;
+    --sidebar-primary:    41 52% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent:     210 20% 94%;
+    --sidebar-accent-foreground: 224 44% 12%;
+    --sidebar-border:     220 14% 88%;
+    --sidebar-ring:       41 52% 46%;
+  }
+
+  /* ── Dark theme ── */
+  .dark {
     --background:  230 46%  8%;   /* #0B0F1E */
     --card:        230 38% 11%;   /* #111526 */
     --card-foreground: 220 20% 92%;
@@ -31,7 +90,6 @@
 
     --foreground:  220 20% 92%;   /* #E8EAF0 */
 
-    /* Gold primary */
     --primary:      41 52% 54%;   /* #C9A84C */
     --primary-foreground: 0 0% 0%;
 
@@ -39,7 +97,7 @@
     --secondary-foreground: 220 20% 92%;
 
     --muted:       230 28% 15%;
-    --muted-foreground: 220 12% 58%;  /* #8890A0 */
+    --muted-foreground: 220 12% 58%;
 
     --accent:      230 28% 16%;
     --accent-foreground: 220 20% 92%;
@@ -47,23 +105,23 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border:      230 30% 16%;   /* subtle border */
+    --border:      230 30% 16%;
     --input:       230 30% 17%;
-    --ring:        41 52% 54%;    /* gold focus ring */
+    --ring:        41 52% 54%;
 
-    /* Chart colors */
-    --chart-1: 142 71% 45%;  /* green */
-    --chart-2: 0   84% 60%;  /* red */
-    --chart-3: 41  52% 54%;  /* gold */
-    --chart-4: 217 91% 60%;  /* blue */
-    --chart-5: 270 60% 60%;  /* purple */
+    --chart-1: 142 71% 45%;
+    --chart-2: 0   84% 60%;
+    --chart-3: 41  52% 54%;
+    --chart-4: 217 91% 60%;
+    --chart-5: 270 60% 60%;
 
-    --radius: 0.5rem;
+    --color-gain:      #22c55e;
+    --color-loss:      #ef4444;
+    --color-data-blue: #3b82f6;
 
-    /* Sidebar — dark gold theme */
-    --sidebar-background: 230 46% 7%;   /* slightly darker than background */
+    --sidebar-background: 230 46% 7%;
     --sidebar-foreground: 220 20% 92%;
-    --sidebar-primary:    41  52% 54%;   /* gold */
+    --sidebar-primary:    41  52% 54%;
     --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent:     230 30% 14%;
     --sidebar-accent-foreground: 220 20% 92%;

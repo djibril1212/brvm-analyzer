@@ -1,7 +1,6 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { formatVariation, variationColor } from "@/lib/format";
+import { formatVariation } from "@/lib/format";
 import type { SectorIndex, StockQuote } from "@/types/brvm";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -52,11 +51,7 @@ const SECTOR_KEYWORDS: Record<string, string[]> = {
   Énergie: ["pétrole", "gaz", "raffinerie", "total", "vivo", "ttlc"],
 };
 
-function getBestPerformer(
-  sectorName: string,
-  stocks: StockQuote[]
-): { symbol: string; variation_pct: number } | null {
-  if (!stocks.length) return null;
+function getBestPerformer(sectorName: string, stocks: StockQuote[]) {
   const keywords = SECTOR_KEYWORDS[sectorName] ?? [];
   if (!keywords.length) return null;
   const pool = stocks.filter((s) =>
@@ -68,12 +63,13 @@ function getBestPerformer(
   );
 }
 
-function getSectorStockCount(sectorName: string, stocks: StockQuote[]): number {
+function getSectorStockCount(sectorName: string, stocks: StockQuote[]) {
   const keywords = SECTOR_KEYWORDS[sectorName] ?? [];
-  if (!keywords.length) return 0;
-  return stocks.filter((s) =>
-    keywords.some((kw) => s.name.toLowerCase().includes(kw))
-  ).length;
+  return keywords.length
+    ? stocks.filter((s) =>
+        keywords.some((kw) => s.name.toLowerCase().includes(kw))
+      ).length
+    : 0;
 }
 
 export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
@@ -83,10 +79,10 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
 
   return (
     <div>
-      <p className="text-[14px] font-medium text-foreground mb-3">
+      <p className="text-sm font-semibold text-foreground mb-3">
         Performance par secteur
       </p>
-      <div className="grid gap-[10px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
         {sorted.map((sector) => {
           const up = sector.variation_pct > 0;
           const down = sector.variation_pct < 0;
@@ -95,45 +91,61 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
           const best = getBestPerformer(sector.name, stocks);
           const count = getSectorStockCount(sector.name, stocks);
 
+          const accentColor = up
+            ? "var(--color-gain)"
+            : down
+            ? "var(--color-loss)"
+            : "hsl(var(--muted-foreground))";
+
           return (
-            <Card
+            <div
               key={sector.name}
-              className="p-3 flex flex-col gap-2 min-w-0 bg-card border-white/[0.07] rounded-lg"
+              className="group relative p-3.5 flex flex-col gap-2 min-w-0 rounded-xl border border-border bg-card hover:shadow-md hover:scale-[1.02] hover:border-primary/30 transition-all duration-200 cursor-pointer overflow-hidden"
             >
-              {/* Top row: name + trend icon */}
+              {/* Gradient accent strip */}
+              <div
+                className="absolute inset-x-0 top-0 h-0.5 rounded-t-xl transition-opacity duration-200 opacity-60 group-hover:opacity-100"
+                style={{ background: accentColor }}
+              />
+
+              {/* Top row */}
               <div className="flex items-center justify-between gap-2">
                 <span
-                  className="text-[11px] text-muted-foreground uppercase tracking-wide truncate"
+                  className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide truncate"
                   title={sector.name}
                 >
                   {label}
                 </span>
                 <Icon
-                  className={`h-3.5 w-3.5 shrink-0 ${variationColor(
-                    sector.variation_pct
-                  )}`}
+                  className="h-3.5 w-3.5 shrink-0"
+                  style={{ color: accentColor }}
                 />
               </div>
 
-              {/* Variation — main value */}
+              {/* Variation value */}
               <p
-                className={`font-mono text-[18px] font-semibold leading-tight tabular-nums ${variationColor(
-                  sector.variation_pct
-                )}`}
+                className="font-mono text-lg font-bold leading-tight tabular-nums"
+                style={{ color: accentColor }}
               >
                 {formatVariation(sector.variation_pct)}
               </p>
 
-              {/* Bottom row: stock count + best performer */}
+              {/* Bottom row */}
               <div className="flex items-center justify-between gap-1">
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-[10px] text-muted-foreground">
                   {count > 0 ? `${count} valeur${count > 1 ? "s" : ""}` : ""}
                 </span>
                 {best && (
                   <span
-                    className={`text-[11px] font-mono truncate ${variationColor(
-                      best.variation_pct
-                    )}`}
+                    className="text-[10px] font-mono truncate"
+                    style={{
+                      color:
+                        best.variation_pct > 0
+                          ? "var(--color-gain)"
+                          : best.variation_pct < 0
+                          ? "var(--color-loss)"
+                          : "hsl(var(--muted-foreground))",
+                    }}
                   >
                     {best.symbol}{" "}
                     {best.variation_pct > 0 ? "+" : ""}
@@ -141,7 +153,7 @@ export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
                   </span>
                 )}
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>

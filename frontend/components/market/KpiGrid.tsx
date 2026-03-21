@@ -3,11 +3,10 @@ import {
   BarChart3,
   ArrowUpDown,
   TrendingUp,
-  TrendingDown,
   Landmark,
+  Coins,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { formatCFA, formatVariation, variationColor } from "@/lib/format";
+import { formatVariation } from "@/lib/format";
 import type { MarketSession, StockQuote } from "@/types/brvm";
 
 interface KpiGridProps {
@@ -15,39 +14,53 @@ interface KpiGridProps {
   stocks: StockQuote[];
 }
 
-interface KpiTile {
+interface MetricCardProps {
   icon: React.ElementType;
   label: string;
   value: string;
   sub: string;
   valueColor?: string;
-  col: number; // 0-based column index
-  row: number; // 0-based row index
+  col: number;
+  row: number;
+  totalCols?: number;
+  totalRows?: number;
 }
 
-function Tile({ icon: Icon, label, value, sub, valueColor, col, row }: KpiTile) {
-  const isLastCol = col === 2;
-  const isLastRow = row === 1;
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  valueColor,
+  col,
+  row,
+  totalCols = 3,
+  totalRows = 2,
+}: MetricCardProps) {
+  const isLastCol = col === totalCols - 1;
+  const isLastRow = row === totalRows - 1;
   return (
     <div
-      className="p-3 flex flex-col gap-1 min-w-0"
+      className="p-3.5 flex flex-col gap-1.5 min-w-0"
       style={{
-        borderRight: !isLastCol ? "0.5px solid rgba(255,255,255,0.07)" : undefined,
-        borderBottom: !isLastRow ? "0.5px solid rgba(255,255,255,0.07)" : undefined,
+        borderRight: !isLastCol ? "1px solid hsl(var(--border))" : undefined,
+        borderBottom: !isLastRow ? "1px solid hsl(var(--border))" : undefined,
       }}
     >
       <div className="flex items-center gap-1.5">
-        <Icon className="h-3 w-3 text-muted-foreground shrink-0" />
-        <span className="text-[11px] text-muted-foreground truncate">{label}</span>
+        <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <span className="text-[11px] text-muted-foreground font-medium truncate">
+          {label}
+        </span>
       </div>
       <p
-        className={`font-mono text-[22px] font-semibold leading-tight tabular-nums truncate ${
+        className={`font-mono text-xl font-semibold leading-tight tabular-nums truncate ${
           valueColor ?? "text-foreground"
         }`}
       >
         {value}
       </p>
-      <p className="text-[12px] text-muted-foreground truncate">{sub}</p>
+      <p className="text-[11px] text-muted-foreground truncate">{sub}</p>
     </div>
   );
 }
@@ -67,23 +80,24 @@ export function KpiGrid({ session, stocks }: KpiGridProps) {
     return v.toLocaleString("fr-FR");
   };
 
-  // Row 1 — indices + breadth
-  // Row 2 — volume, cap, valeur
-  const tiles: Omit<KpiTile, "col" | "row">[] = [
+  const pct = session.composite.variation_pct;
+  const compositeColor = pct > 0 ? "text-gain" : pct < 0 ? "text-loss" : "text-muted-foreground";
+
+  const tiles: Omit<MetricCardProps, "col" | "row">[] = [
     {
       icon: TrendingUp,
       label: "Composite BRVM",
       value: session.composite.value.toLocaleString("fr-FR", {
         maximumFractionDigits: 2,
       }),
-      sub: formatVariation(session.composite.variation_pct),
-      valueColor: variationColor(session.composite.variation_pct),
+      sub: formatVariation(pct),
+      valueColor: compositeColor,
     },
     {
       icon: BarChart3,
       label: "Valeurs cotées",
       value: String(stocks.length || 47),
-      sub: "actions à la BRVM",
+      sub: "actions à la cote",
     },
     {
       icon: ArrowUpDown,
@@ -99,12 +113,17 @@ export function KpiGrid({ session, stocks }: KpiGridProps) {
     },
     {
       icon: Landmark,
-      label: "Cap. marché",
-      value: formatCFA(session.market_cap, true).replace(" XOF", ""),
+      label: "Cap. boursière",
+      value: (() => {
+        const v = session.market_cap;
+        if (v >= 1e12) return `${(v / 1e12).toFixed(2)} Bn`;
+        if (v >= 1e9) return `${(v / 1e9).toFixed(1)} Mds`;
+        return `${(v / 1e6).toFixed(0)} M`;
+      })(),
       sub: "XOF",
     },
     {
-      icon: TrendingDown,
+      icon: Coins,
       label: "Valeur échangée",
       value: fmtVal(totalValue),
       sub: "XOF",
@@ -112,17 +131,17 @@ export function KpiGrid({ session, stocks }: KpiGridProps) {
   ];
 
   return (
-    <Card className="overflow-hidden rounded-xl bg-[#0D1226] border-white/[0.07]">
-      <div className="grid grid-cols-3">
-        {tiles.map((tile, i) => (
-          <Tile
-            key={i}
-            {...tile}
-            col={i % 3}
-            row={Math.floor(i / 3)}
-          />
-        ))}
-      </div>
-    </Card>
+    <div className="grid grid-cols-3 h-full">
+      {tiles.map((tile, i) => (
+        <MetricCard
+          key={i}
+          {...tile}
+          col={i % 3}
+          row={Math.floor(i / 3)}
+          totalCols={3}
+          totalRows={2}
+        />
+      ))}
+    </div>
   );
 }

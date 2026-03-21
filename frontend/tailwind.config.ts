@@ -18,7 +18,7 @@ const config: Config = {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'var(--font-geist-sans)',
+  				'var(--font-dm-sans)',
   				'ui-sans-serif',
   				'system-ui',
   				'sans-serif'
@@ -63,10 +63,12 @@ const config: Config = {
   				DEFAULT: 'hsl(var(--popover))',
   				foreground: 'hsl(var(--popover-foreground))'
   			},
-  			gold: '#C9A84C',
-  			up: '#22C55E',
-  			down: '#EF4444',
-  			faint: '#5A6070',
+  			gold: 'hsl(var(--primary))',
+  			gain: 'var(--color-gain)',
+  			loss: 'var(--color-loss)',
+  			up: 'var(--color-gain)',
+  			down: 'var(--color-loss)',
+  			'data-blue': 'var(--color-data-blue)',
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, Cell, XAxis } from "recharts";
+import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -10,12 +10,12 @@ import {
 import type { StockQuote } from "@/types/brvm";
 
 const BUCKETS = [
-  { label: "< -5%", min: -Infinity, max: -5,       color: "#ef4444" },
-  { label: "-5/-2", min: -5,        max: -2,        color: "#f87171" },
-  { label: "-2/0",  min: -2,        max: 0,         color: "#fbbf24" },
-  { label: "0/+2",  min: 0,         max: 2,         color: "#86efac" },
-  { label: "+2/+5", min: 2,         max: 5,         color: "#34d399" },
-  { label: "> +5%", min: 5,         max: Infinity,  color: "#10b981" },
+  { label: "< -5%", min: -Infinity, max: -5,      color: "#dc2626" },
+  { label: "-5/-2", min: -5,        max: -2,       color: "#f87171" },
+  { label: "-2/0",  min: -2,        max: 0,        color: "#fb923c" },
+  { label: "0/+2",  min: 0,         max: 2,        color: "#86efac" },
+  { label: "+2/+5", min: 2,         max: 5,        color: "#34d399" },
+  { label: "> +5%", min: 5,         max: Infinity, color: "#16a34a" },
 ];
 
 const chartConfig = {
@@ -36,36 +36,38 @@ export function DistributionChart({ stocks }: DistributionChartProps) {
   }));
 
   const total = stocks.length;
+  const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-semibold text-foreground">
           Distribution des variations
         </span>
-        <span className="text-[10px] text-muted-foreground font-mono tabular-nums">
+        <span className="text-[11px] text-muted-foreground font-mono tabular-nums">
           {total} valeurs
         </span>
       </div>
 
-      <ChartContainer config={chartConfig} className="h-[80px] w-full">
+      <ChartContainer config={chartConfig} className="h-[110px] w-full">
         <BarChart
           data={data}
-          barCategoryGap="15%"
-          margin={{ top: 8, right: 0, left: 0, bottom: 0 }}
+          barCategoryGap="18%"
+          margin={{ top: 4, right: 0, left: -20, bottom: 0 }}
         >
           <XAxis
             dataKey="label"
             tick={{
-              fill: "hsl(220 12% 48%)",
-              fontSize: 8,
-              fontFamily: "monospace",
+              fill: "hsl(var(--muted-foreground))",
+              fontSize: 9,
+              fontFamily: "var(--font-geist-mono), monospace",
             }}
             axisLine={false}
             tickLine={false}
           />
+          <YAxis hide domain={[0, maxCount + 1]} />
           <ChartTooltip
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            cursor={{ fill: "hsl(var(--muted))" }}
             content={
               <ChartTooltipContent
                 nameKey="count"
@@ -76,12 +78,12 @@ export function DistributionChart({ stocks }: DistributionChartProps) {
               />
             }
           />
-          <Bar dataKey="count" radius={[3, 3, 0, 0]}>
+          <Bar dataKey="count" radius={[4, 4, 0, 0]}>
             {data.map((d, i) => (
               <Cell
                 key={i}
                 fill={d.color}
-                fillOpacity={d.count === 0 ? 0.18 : 0.9}
+                fillOpacity={d.count === 0 ? 0.2 : 0.85}
               />
             ))}
           </Bar>
@@ -93,8 +95,8 @@ export function DistributionChart({ stocks }: DistributionChartProps) {
         {data.map((d) => (
           <div key={d.label} className="text-center">
             <span
-              className="text-[10px] font-mono font-bold tabular-nums"
-              style={{ color: d.count > 0 ? d.color : "rgba(255,255,255,0.2)" }}
+              className="text-[11px] font-mono font-bold tabular-nums"
+              style={{ color: d.count > 0 ? d.color : "hsl(var(--muted-foreground))" }}
             >
               {d.count}
             </span>

@@ -10,19 +10,19 @@ interface AnalysisSectionProps {
 }
 
 const profilColors: Record<string, string> = {
-  rendement: "text-emerald-400 border-emerald-400/20",
-  croissance: "text-blue-400 border-blue-400/20",
-  valeur: "text-amber-400 border-amber-400/20",
-  spéculatif: "text-purple-400 border-purple-400/20",
+  rendement: "text-gain border-[var(--color-gain)]/20",
+  croissance: "text-[var(--color-data-blue)] border-[var(--color-data-blue)]/20",
+  valeur: "text-amber-600 dark:text-amber-400 border-amber-500/20",
+  spéculatif: "text-purple-600 dark:text-purple-400 border-purple-500/20",
 };
 
 function ScoreBadge({ score }: { score: number }) {
   const color =
     score >= 7
-      ? "bg-emerald-500/10 text-emerald-400 border-emerald-400/20"
+      ? "bg-emerald-500/10 text-gain border-[var(--color-gain)]/20"
       : score >= 5
-      ? "bg-amber-500/10 text-amber-400 border-amber-400/20"
-      : "bg-red-500/10 text-red-400 border-red-400/20";
+      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+      : "bg-red-500/10 text-loss border-[var(--color-loss)]/20";
   return (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold border ${color}`}
@@ -122,8 +122,8 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
                       variant="outline"
                       className={`ml-auto font-mono text-xs ${
                         pick.variation_pct >= 0
-                          ? "text-emerald-400 border-emerald-400/20"
-                          : "text-red-400 border-red-400/20"
+                          ? "text-gain border-[var(--color-gain)]/20"
+                          : "text-loss border-[var(--color-loss)]/20"
                       }`}
                     >
                       {pick.variation_pct > 0 ? "+" : ""}

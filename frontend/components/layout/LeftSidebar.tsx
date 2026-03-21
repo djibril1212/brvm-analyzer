@@ -2,11 +2,12 @@
 
 import {
   LayoutDashboard,
-  BarChart2,
-  TrendingUp,
-  Clock,
+  Building2,
+  Layers,
   Bell,
   Settings,
+  LogIn,
+  MessageSquare,
 } from "lucide-react";
 import {
   Sidebar,
@@ -22,9 +23,8 @@ import {
 
 const NAV = [
   { icon: LayoutDashboard, label: "Tableau de bord", active: true },
-  { icon: BarChart2,       label: "Marchés" },
-  { icon: TrendingUp,      label: "Tendances" },
-  { icon: Clock,           label: "Historique" },
+  { icon: Building2,       label: "Sociétés" },
+  { icon: Layers,          label: "Secteurs" },
   { icon: Bell,            label: "Alertes" },
 ];
 
@@ -35,18 +35,18 @@ export function LeftSidebar() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-2 px-1 py-1">
+            <div className="flex items-center gap-2.5 px-1 py-1">
+              {/* Doli-style circle logo */}
               <div
-                className="w-7 h-7 rounded flex items-center justify-center font-bold text-[13px] text-black shrink-0"
+                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-[13px] text-white"
                 style={{
-                  background:
-                    "linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #A87A28 100%)",
+                  background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(41 60% 38%) 100%)",
                 }}
               >
                 B
               </div>
               <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                <span className="font-semibold text-sm leading-none">
+                <span className="font-semibold text-sm leading-none text-foreground">
                   BRVM
                 </span>
                 <span className="text-xs text-muted-foreground leading-none mt-0.5">
@@ -68,11 +68,7 @@ export function LeftSidebar() {
                   <SidebarMenuButton
                     isActive={active}
                     tooltip={label}
-                    className={
-                      active
-                        ? "text-[#C9A84C]"
-                        : ""
-                    }
+                    className={active ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"}
                   >
                     <Icon />
                     <span>{label}</span>
@@ -88,9 +84,21 @@ export function LeftSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Paramètres">
+            <SidebarMenuButton tooltip="Avis" className="text-muted-foreground hover:text-foreground">
+              <MessageSquare />
+              <span>Avis</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Paramètres" className="text-muted-foreground hover:text-foreground">
               <Settings />
               <span>Paramètres</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Se connecter" className="text-muted-foreground hover:text-foreground">
+              <LogIn />
+              <span>Se connecter</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

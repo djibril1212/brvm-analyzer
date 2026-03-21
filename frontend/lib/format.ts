@@ -22,15 +22,15 @@ export function formatVariation(pct: number): string {
 
 /** Couleur Tailwind pour une variation */
 export function variationColor(pct: number): string {
-  if (pct > 0) return "text-emerald-400";
-  if (pct < 0) return "text-red-400";
+  if (pct > 0) return "text-gain";
+  if (pct < 0) return "text-loss";
   return "text-muted-foreground";
 }
 
 /** Couleur de fond pour une variation (badge) */
 export function variationBg(pct: number): string {
-  if (pct > 0) return "bg-emerald-400/10 text-emerald-400 border-emerald-400/20";
-  if (pct < 0) return "bg-red-400/10 text-red-400 border-red-400/20";
+  if (pct > 0) return "bg-emerald-500/10 text-gain border-emerald-500/20";
+  if (pct < 0) return "bg-red-500/10 text-loss border-red-500/20";
   return "bg-muted text-muted-foreground";
 }
 
@@ -61,7 +61,7 @@ export function sentimentLabel(sentiment: string): string {
 }
 
 export function sentimentColor(sentiment: string): string {
-  if (sentiment === "haussier") return "text-emerald-400";
-  if (sentiment === "baissier") return "text-red-400";
-  return "text-amber-400";
+  if (sentiment === "haussier") return "text-gain";
+  if (sentiment === "baissier") return "text-loss";
+  return "text-amber-600 dark:text-amber-400";
 }

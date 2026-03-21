@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
+import { DM_Sans } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
 import "./globals.css";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "BRVM Daily Analyzer — Tableau de bord boursier UEMOA",
@@ -21,7 +26,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`dark ${GeistSans.variable} ${GeistMono.variable}`}
+      className={`light ${dmSans.variable} ${GeistMono.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
         <SidebarProvider defaultOpen={false}>
