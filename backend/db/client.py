@@ -86,7 +86,7 @@ class BRVMDatabase:
         logger.info("Analyse IA upsertée pour %s", session_date)
 
     def get_latest_session(self) -> Optional[dict[str, Any]]:
-        """Retourne la dernière session disponible."""
+        """Retourne la dernière session disponible avec stocks et secteurs."""
         response = (
             self._client.table("market_sessions")
             .select("*")
@@ -94,17 +94,67 @@ class BRVMDatabase:
             .limit(1)
             .execute()
         )
-        return response.data[0] if response.data else None
+        if not response.data:
+            return None
+        return self._enrich_session(response.data[0])
 
     def get_session(self, session_date: date) -> Optional[dict[str, Any]]:
-        """Retourne une session par date."""
+        """Retourne une session par date avec stocks et secteurs."""
         response = (
             self._client.table("market_sessions")
             .select("*")
             .eq("session_date", str(session_date))
             .execute()
         )
-        return response.data[0] if response.data else None
+        if not response.data:
+            return None
+        return self._enrich_session(response.data[0])
+
+    def _enrich_session(self, row: dict[str, Any]) -> dict[str, Any]:
+        """Enrichit une session avec stocks, secteurs et formate pour l'API."""
+        session_date = row["session_date"]
+
+        # Stocks
+        stocks_resp = (
+            self._client.table("stock_quotes")
+            .select("*")
+            .eq("session_date", session_date)
+            .order("symbol")
+            .execute()
+        )
+
+        # Secteurs
+        sectors_resp = (
+            self._client.table("sector_indices")
+            .select("*")
+            .eq("session_date", session_date)
+            .execute()
+        )
+
+        return {
+            "session_date": session_date,
+            "composite": {
+                "name": "BRVM Composite",
+                "value": row.get("composite_value"),
+                "variation_pct": row.get("composite_variation"),
+            },
+            "brvm30": {
+                "name": "BRVM 30",
+                "value": row.get("brvm30_value"),
+                "variation_pct": row.get("brvm30_variation"),
+            },
+            "prestige": {
+                "name": "BRVM Prestige",
+                "value": row.get("prestige_value"),
+                "variation_pct": row.get("prestige_variation"),
+            },
+            "advancing": row.get("advancing", 0),
+            "declining": row.get("declining", 0),
+            "unchanged": row.get("unchanged", 0),
+            "market_cap": row.get("market_cap", 0),
+            "stocks": stocks_resp.data,
+            "sectors": sectors_resp.data,
+        }
 
     def get_stock_history(
         self, symbol: str, limit: int = 30
