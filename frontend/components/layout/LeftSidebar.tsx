@@ -46,10 +46,10 @@ export function LeftSidebar() {
                 B
               </div>
               <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                <span className="font-semibold text-sm leading-none text-foreground">
+                <span className="font-display font-bold text-sm leading-none text-foreground tracking-tight">
                   BRVM
                 </span>
-                <span className="text-xs text-muted-foreground leading-none mt-0.5">
+                <span className="text-[11px] text-muted-foreground leading-none mt-0.5 tracking-wide uppercase">
                   Analyzer
                 </span>
               </div>

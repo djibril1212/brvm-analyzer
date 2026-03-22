@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Syne } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { LeftSidebar } from "@/components/layout/LeftSidebar";
@@ -9,6 +9,13 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-dm-sans",
   display: "swap",
+});
+
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+  display: "swap",
+  weight: ["600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -26,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`light ${dmSans.variable} ${GeistMono.variable}`}
+      className={`dark ${dmSans.variable} ${GeistMono.variable} ${syne.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
         <SidebarProvider defaultOpen={false}>

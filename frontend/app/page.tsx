@@ -15,7 +15,7 @@ import { LiveBadge } from "@/components/market/LiveBadge";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { DashboardSkeleton } from "@/components/market/LoadingSkeleton";
 import { getLatestSession, getLatestAnalysis } from "@/lib/api";
-import { formatSessionDate, sentimentLabel } from "@/lib/format";
+import { formatSessionDate, formatVariation, sentimentLabel } from "@/lib/format";
 import type { MarketSession } from "@/types/brvm";
 
 // ISR : revalidation via webhook (pipeline déclenche /api/revalidate)
@@ -44,6 +44,10 @@ async function DashboardContent() {
   const stocks = s.stocks ?? [];
   const sectors = s.sectors ?? [];
 
+  const pct = s.composite.variation_pct;
+  const compositeUp = pct >= 0;
+  const variationStr = formatVariation(pct);
+
   const sentiment =
     analysis.status === "fulfilled"
       ? (analysis.value.market_sentiment as string)
@@ -55,7 +59,7 @@ async function DashboardContent() {
       {stocks.length > 0 && <TickerTape stocks={stocks} />}
 
       {/* ── Sticky top header ── */}
-      <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 bg-background/95 backdrop-blur border-b border-border px-3 pr-4">
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 bg-background/80 backdrop-blur border-b border-border px-3 pr-4">
         <div className="flex items-center gap-2 shrink-0">
           <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
           <Separator orientation="vertical" className="h-4" />
@@ -68,7 +72,7 @@ async function DashboardContent() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 shrink-0">
-          <p className="hidden sm:block text-[12px] text-muted-foreground font-mono">
+          <p className="hidden sm:block text-[12px] text-muted-foreground font-mono tabular-nums">
             {formatSessionDate(s.session_date)}
           </p>
           <LiveBadge />
@@ -82,11 +86,11 @@ async function DashboardContent() {
 
           {/* Page title */}
           <div className="mb-5">
-            <h1 className="text-[20px] font-semibold leading-tight text-foreground tracking-tight">
+            <h1 className="font-display text-[22px] font-bold leading-tight text-foreground tracking-tight">
               BRVM
             </h1>
             <p className="text-[13px] text-muted-foreground mt-0.5">
-              Bourse Régionale des Valeurs Mobilières
+              Bourse Régionale des Valeurs Mobilières · Zone UEMOA
             </p>
           </div>
 
@@ -96,18 +100,81 @@ async function DashboardContent() {
             {/* ── Left main column ── */}
             <div className="flex-1 min-w-0 space-y-5">
 
-              {/* Hero card: UEMOA map + KPI grid */}
+              {/* Hero card: composite strip + UEMOA map + KPI grid */}
               <Card className="rounded-xl border-border bg-card shadow-sm overflow-hidden">
                 <CardContent className="p-0">
+
+                  {/* ── Composite Index hero strip ── */}
+                  <div className="px-5 sm:px-6 py-5 border-b border-border">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.18em] mb-1.5">
+                          Indice Composite BRVM
+                        </p>
+                        <div className="flex items-baseline gap-3">
+                          <span
+                            className={`font-display text-5xl sm:text-[60px] font-bold leading-none tabular-nums text-foreground${compositeUp ? " glow-gain" : ""}`}
+                          >
+                            {s.composite.value.toLocaleString("fr-FR", {
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                          <span
+                            className={`font-mono text-lg sm:text-xl font-semibold tabular-nums${compositeUp ? " text-gain" : " text-loss"}`}
+                          >
+                            {variationStr}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Session stats */}
+                      <div className="flex items-center gap-5 sm:gap-6">
+                        <div className="text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Hausses
+                          </p>
+                          <p className="font-mono text-lg font-bold text-gain tabular-nums mt-0.5">
+                            {s.advancing}
+                          </p>
+                        </div>
+                        <div
+                          className="h-8 w-px bg-border"
+                          aria-hidden="true"
+                        />
+                        <div className="text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Baisses
+                          </p>
+                          <p className="font-mono text-lg font-bold text-loss tabular-nums mt-0.5">
+                            {s.declining}
+                          </p>
+                        </div>
+                        <div
+                          className="h-8 w-px bg-border"
+                          aria-hidden="true"
+                        />
+                        <div className="text-center">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                            Stables
+                          </p>
+                          <p className="font-mono text-lg font-bold text-muted-foreground tabular-nums mt-0.5">
+                            {s.unchanged}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ── Map + KPI grid ── */}
                   <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] divide-y lg:divide-y-0 lg:divide-x divide-border">
                     {/* Map panel */}
                     <div className="p-4 sm:p-5">
-                      <UemoaMap session={s} />
+                      <UemoaMap session={s} stocks={stocks} />
                     </div>
-                    {/* Metrics panel */}
+                    {/* Metrics panel — 5 tiles (no composite, shown above) */}
                     {stocks.length > 0 && (
                       <div className="p-0">
-                        <KpiGrid session={s} stocks={stocks} />
+                        <KpiGrid session={s} stocks={stocks} hideComposite />
                       </div>
                     )}
                   </div>
