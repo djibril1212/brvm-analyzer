@@ -36,10 +36,7 @@ import {
   Trash2,
   TrendingUp,
   TrendingDown,
-  Minus,
-  Upload,
   Briefcase,
-  RefreshCw,
   Info,
 } from "lucide-react";
 import {
@@ -49,8 +46,6 @@ import {
   enrichPositions,
   computeSummary,
   formatXOF,
-  parseCsvRows,
-  detectColumns,
 } from "@/lib/portfolio";
 import type { Portfolio, PositionWithMarket, BrokerAccount } from "@/types/portfolio";
 import type { StockQuote } from "@/types/brvm";
@@ -378,7 +373,7 @@ export function PortfolioClient({ stocks }: Props) {
                   </tr>
                 </thead>
                 <tbody>
-                  {enriched.map((pos, i) => {
+                  {enriched.map((pos) => {
                     const livePct = stocks.find((s) => s.symbol === pos.symbol)?.variation_pct ?? null;
                     return (
                       <tr
