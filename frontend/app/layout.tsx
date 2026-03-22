@@ -36,7 +36,7 @@ export default function RootLayout({
       className={`dark ${dmSans.variable} ${GeistMono.variable} ${syne.variable}`}
     >
       <body className="antialiased bg-background text-foreground">
-        <SidebarProvider defaultOpen={false}>
+        <SidebarProvider defaultOpen={true}>
           <LeftSidebar />
           <SidebarInset className="min-h-screen flex flex-col overflow-x-hidden">
             {children}

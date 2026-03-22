@@ -24,7 +24,7 @@ import {
 
 const NAV = [
   { icon: LayoutDashboard, label: "Tableau de bord", href: "/" },
-  { icon: Building2,       label: "Sociétés",        href: "/stock" },
+  { icon: Building2,       label: "Sociétés",        href: "/stocks" },
   { icon: Layers,          label: "Secteurs",         href: "/sectors" },
   { icon: CalendarDays,    label: "Historique",       href: "/history" },
 ];
