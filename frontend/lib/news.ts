@@ -19,8 +19,7 @@ function extractCdata(tag: string, xml: string): string {
  * Only runs server-side (no CORS issue).
  */
 export async function fetchCompanyNews(
-  companyName: string,
-  _ticker: string
+  companyName: string
 ): Promise<NewsArticle[]> {
   const query = `${companyName} BRVM Afrique`;
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=fr&gl=CI&ceid=CI:fr`;

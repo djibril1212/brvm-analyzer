@@ -54,7 +54,7 @@ async function StockPageContent({ symbol }: { symbol: string }) {
   if (!stock) notFound();
 
   const history = historyRes.status === "fulfilled" ? historyRes.value : [];
-  const news = await fetchCompanyNews(stock.name, sym).catch(() => []);
+  const news = await fetchCompanyNews(stock.name).catch(() => []);
   const pct = stock.variation_pct;
   const up = pct > 0;
   const down = pct < 0;
