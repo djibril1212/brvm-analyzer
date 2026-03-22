@@ -1,18 +1,16 @@
 import { Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { KpiGrid } from "@/components/market/KpiGrid";
-import { StockTabs } from "@/components/market/StockTabs";
 import { SectorGrid } from "@/components/market/SectorGrid";
-import { AnalysisSection } from "@/components/market/AnalysisSection";
 import { MarketSidebar } from "@/components/market/MarketSidebar";
 import { TickerTape } from "@/components/market/TickerTape";
 import { SearchCommand } from "@/components/market/SearchCommand";
 import { LiveBadge } from "@/components/market/LiveBadge";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { DashboardSkeleton } from "@/components/market/LoadingSkeleton";
+import { DashboardTabs } from "@/components/market/DashboardTabs";
 import { getLatestSession, getLatestAnalysis } from "@/lib/api";
 import { formatSessionDate, formatVariation, sentimentLabel } from "@/lib/format";
 import { CalendarDays } from "lucide-react";
@@ -185,65 +183,11 @@ async function DashboardContent() {
               )}
 
               {/* Market / AI Analysis tabs */}
-              <Tabs defaultValue="market">
-                <div className="border-b border-border mb-4">
-                  <TabsList className="bg-transparent p-0 h-10 rounded-none border-0 gap-0 w-auto">
-                    {(["market", "analysis"] as const).map((val) => (
-                      <TabsTrigger
-                        key={val}
-                        value={val}
-                        className="
-                          h-10 px-5 text-sm font-medium rounded-none -mb-px
-                          border-b-2 border-transparent bg-transparent shadow-none
-                          data-[state=active]:border-primary data-[state=active]:text-foreground
-                          data-[state=active]:bg-transparent data-[state=active]:shadow-none
-                          data-[state=inactive]:text-muted-foreground hover:text-foreground
-                          transition-colors
-                        "
-                      >
-                        {val === "market" ? "Marché" : "Analyse IA"}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </div>
-
-                <TabsContent value="market" className="space-y-4 mt-0">
-                  {stocks.length > 0 ? (
-                    <StockTabs stocks={stocks} />
-                  ) : (
-                    <p className="text-xs text-muted-foreground py-8 text-center">
-                      Cours disponibles après le premier pipeline.
-                    </p>
-                  )}
-
-                  {s.announcements && (
-                    <Card className="bg-card border-border shadow-sm">
-                      <CardContent className="pt-4 pb-4">
-                        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                          Annonces
-                        </p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {s.announcements}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="analysis" className="mt-0">
-                  {analysis.status === "fulfilled" ? (
-                    <AnalysisSection analysis={analysis.value} />
-                  ) : (
-                    <Card className="bg-card border-border shadow-sm">
-                      <CardContent className="py-12 text-center">
-                        <p className="text-sm text-muted-foreground">
-                          Analyse IA non disponible pour cette séance.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </TabsContent>
-              </Tabs>
+              <DashboardTabs
+                stocks={stocks}
+                analysis={analysis.status === "fulfilled" ? analysis.value : null}
+                announcements={s.announcements ?? undefined}
+              />
 
               {/* Legal footer */}
               <p className="text-[11px] text-muted-foreground/50 pb-2 leading-relaxed">
