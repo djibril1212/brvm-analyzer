@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { UemoaMap } from "@/components/market/UemoaMap";
 import { KpiGrid } from "@/components/market/KpiGrid";
 import { StockTabs } from "@/components/market/StockTabs";
 import { SectorGrid } from "@/components/market/SectorGrid";
@@ -165,19 +164,10 @@ async function DashboardContent() {
                     </div>
                   </div>
 
-                  {/* ── Map + KPI grid ── */}
-                  <div className="grid grid-cols-1 lg:grid-cols-[5fr_7fr] divide-y lg:divide-y-0 lg:divide-x divide-border">
-                    {/* Map panel */}
-                    <div className="p-4 sm:p-5">
-                      <UemoaMap session={s} stocks={stocks} />
-                    </div>
-                    {/* Metrics panel — 5 tiles (no composite, shown above) */}
-                    {stocks.length > 0 && (
-                      <div className="p-0">
-                        <KpiGrid session={s} stocks={stocks} hideComposite />
-                      </div>
-                    )}
-                  </div>
+                  {/* ── KPI grid ── */}
+                  {stocks.length > 0 && (
+                    <KpiGrid session={s} stocks={stocks} hideComposite />
+                  )}
                 </CardContent>
               </Card>
 
