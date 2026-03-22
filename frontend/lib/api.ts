@@ -65,3 +65,29 @@ export async function getStockHistory(
   if (!res.ok) throw new Error(`Historique ${symbol} → HTTP ${res.status}`);
   return res.json();
 }
+
+// ─── Session par date ─────────────────────────────────────────────────────────
+
+export async function getSession(date: string): Promise<import("@/types/brvm").MarketSession> {
+  if (!API_BASE) throw new Error("API_BASE non configuré");
+
+  const res = await fetch(`${API_BASE}/api/market/sessions/${date}`, {
+    next: { revalidate: 86400 },
+  });
+
+  if (!res.ok) throw new Error(`Session ${date} → HTTP ${res.status}`);
+  return res.json() as Promise<import("@/types/brvm").MarketSession>;
+}
+
+// ─── Analyse IA par date ──────────────────────────────────────────────────────
+
+export async function getSessionAnalysis(date: string): Promise<import("@/types/brvm").DailyAnalysis> {
+  if (!API_BASE) throw new Error("API_BASE non configuré");
+
+  const res = await fetch(`${API_BASE}/api/market/analysis/${date}`, {
+    next: { revalidate: 86400 },
+  });
+
+  if (!res.ok) throw new Error(`Analyse ${date} → HTTP ${res.status}`);
+  return res.json() as Promise<import("@/types/brvm").DailyAnalysis>;
+}
