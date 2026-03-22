@@ -5,7 +5,8 @@ import { ArrowLeft, TrendingUp, TrendingDown, Minus, ExternalLink, Newspaper } f
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { PriceChart } from "@/components/stock/PriceChart";
+import { TechnicalChart } from "@/components/stock/TechnicalChart";
+import { IndicatorSummary } from "@/components/stock/IndicatorSummary";
 import { getLatestSession, getStockHistory } from "@/lib/api";
 import { fetchCompanyNews, formatNewsDate, isRecentArticle } from "@/lib/news";
 import {
@@ -35,7 +36,7 @@ async function StockPageContent({ symbol }: { symbol: string }) {
 
   const [sessionRes, historyRes] = await Promise.allSettled([
     getLatestSession(),
-    getStockHistory(sym, 60),
+    getStockHistory(sym, 80),
   ]);
 
   // News fetched after we know the company name — handled later
@@ -116,15 +117,16 @@ async function StockPageContent({ symbol }: { symbol: string }) {
         </div>
       </div>
 
-      {/* Chart */}
+      {/* Chart + Indicateurs techniques */}
       <Card className="bg-card border-border mb-5">
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Évolution du cours — {history.length} séances
+            Analyse technique — {history.length} séances
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-2 pb-4">
-          <PriceChart history={history} currentPrice={stock.close} />
+        <CardContent className="px-4 pb-4 space-y-4">
+          <IndicatorSummary history={history} />
+          <TechnicalChart history={history} currentPrice={stock.close} />
         </CardContent>
       </Card>
 
