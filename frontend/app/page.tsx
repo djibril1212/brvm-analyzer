@@ -185,15 +185,27 @@ async function DashboardContent() {
               )}
 
               {/* Market / AI Analysis tabs */}
-              <Tabs defaultValue="market" className="space-y-4">
-                <TabsList className="bg-card border border-border shadow-sm h-9">
-                  <TabsTrigger value="market" className="text-[12px] h-7 px-4">
-                    Marché
-                  </TabsTrigger>
-                  <TabsTrigger value="analysis" className="text-[12px] h-7 px-4">
-                    Analyse IA
-                  </TabsTrigger>
-                </TabsList>
+              <Tabs defaultValue="market">
+                <div className="border-b border-border mb-4">
+                  <TabsList className="bg-transparent p-0 h-10 rounded-none border-0 gap-0 w-auto">
+                    {(["market", "analysis"] as const).map((val) => (
+                      <TabsTrigger
+                        key={val}
+                        value={val}
+                        className="
+                          h-10 px-5 text-sm font-medium rounded-none -mb-px
+                          border-b-2 border-transparent bg-transparent shadow-none
+                          data-[state=active]:border-primary data-[state=active]:text-foreground
+                          data-[state=active]:bg-transparent data-[state=active]:shadow-none
+                          data-[state=inactive]:text-muted-foreground hover:text-foreground
+                          transition-colors
+                        "
+                      >
+                        {val === "market" ? "Marché" : "Analyse IA"}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
 
                 <TabsContent value="market" className="space-y-4 mt-0">
                   {stocks.length > 0 ? (

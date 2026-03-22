@@ -83,7 +83,7 @@ export function SectorGrid({ sectors }: SectorGridProps) {
               </span>
 
               {/* Label */}
-              <span className="w-28 text-[12px] text-foreground/70 truncate shrink-0 group-hover:text-foreground transition-colors duration-150">
+              <span className="w-36 text-[12px] text-foreground/70 truncate shrink-0 group-hover:text-foreground transition-colors duration-150" title={sector.name}>
                 {label}
               </span>
 

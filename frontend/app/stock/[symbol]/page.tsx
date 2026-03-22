@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, ExternalLink, Newspaper } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PriceChart } from "@/components/stock/PriceChart";
 import { getLatestSession, getStockHistory } from "@/lib/api";
+import { fetchCompanyNews, formatNewsDate } from "@/lib/news";
 import {
   formatVariation,
   formatCFA,
@@ -37,6 +38,8 @@ async function StockPageContent({ symbol }: { symbol: string }) {
     getStockHistory(sym, 60),
   ]);
 
+  // News fetched after we know the company name — handled later
+
   if (sessionRes.status === "rejected") {
     return (
       <div className="text-center py-20 text-muted-foreground text-sm">
@@ -51,6 +54,7 @@ async function StockPageContent({ symbol }: { symbol: string }) {
   if (!stock) notFound();
 
   const history = historyRes.status === "fulfilled" ? historyRes.value : [];
+  const news = await fetchCompanyNews(stock.name, sym).catch(() => []);
   const pct = stock.variation_pct;
   const up = pct > 0;
   const down = pct < 0;
@@ -222,6 +226,65 @@ async function StockPageContent({ symbol }: { symbol: string }) {
                 );
               })}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* News Section */}
+      <Card className="bg-card border-border mb-5">
+        <CardHeader className="pb-2 pt-4 px-4">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Newspaper className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground uppercase tracking-wide text-[11px]">
+              Actualités — {stock.name}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-3">
+          {news.length > 0 ? (
+            <div className="space-y-0 divide-y divide-border/50">
+              {news.map((article, i) => (
+                <a
+                  key={i}
+                  href={article.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start justify-between gap-3 py-3 group hover:bg-muted/10 -mx-4 px-4 transition-colors duration-100"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                      {article.title}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {article.source && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 h-4 font-normal">
+                          {article.source}
+                        </Badge>
+                      )}
+                      <span className="text-[11px] text-muted-foreground/60">
+                        {formatNewsDate(article.pubDate)}
+                      </span>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-muted-foreground shrink-0 mt-0.5 transition-colors" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="py-4 flex flex-col items-center gap-3">
+              <p className="text-[12px] text-muted-foreground text-center">
+                Aucun article trouvé pour cette société.
+              </p>
+              <a
+                href={`https://news.google.com/search?q=${encodeURIComponent(stock.name + " BRVM")}&hl=fr`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[12px] text-primary hover:underline underline-offset-2"
+              >
+                Rechercher sur Google News
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -118,7 +118,7 @@ export function StockTable({ stocks, liveMap = new Map() }: StockTableProps) {
                 <TableCell className="text-right font-mono text-[13px] tabular-nums text-foreground">
                   {price.toLocaleString("fr-FR")}
                   {isLive && (
-                    <span className="ml-1 h-1.5 w-1.5 rounded-full bg-up inline-block align-middle" />
+                    <span className="ml-1 h-1.5 w-1.5 rounded-full inline-block align-middle" style={{ background: "var(--color-gain)" }} />
                   )}
                 </TableCell>
                 <TableCell className="text-right">
