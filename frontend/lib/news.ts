@@ -54,30 +54,52 @@ export async function fetchCompanyNews(
         const source = extractCdata("source", item);
         return { title, link, pubDate, source };
       })
-      .filter((a) => a.title.length > 0 && a.link.length > 0);
+      .filter((a) => a.title.length > 0 && a.link.length > 0)
+      .sort((a, b) => {
+        const da = new Date(a.pubDate).getTime();
+        const db = new Date(b.pubDate).getTime();
+        return (isNaN(db) ? 0 : db) - (isNaN(da) ? 0 : da);
+      });
   } catch {
     return [];
   }
 }
 
-/** Format a pubDate string to a readable relative or absolute date */
+/** Format a pubDate string to a readable relative or absolute date with exact time */
 export function formatNewsDate(pubDate: string): string {
   try {
     const d = new Date(pubDate);
+    if (isNaN(d.getTime())) return pubDate;
     const now = new Date();
     const diffMs = now.getTime() - d.getTime();
+    const diffMin = Math.floor(diffMs / (1000 * 60));
     const diffH = Math.floor(diffMs / (1000 * 60 * 60));
     const diffD = Math.floor(diffH / 24);
 
-    if (diffH < 1) return "À l'instant";
-    if (diffH < 24) return `Il y a ${diffH}h`;
-    if (diffD < 7) return `Il y a ${diffD}j`;
+    const hhmm = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+
+    if (diffMin < 5) return "À l'instant";
+    if (diffMin < 60) return `Il y a ${diffMin} min`;
+    if (diffH < 24) return `Aujourd'hui ${hhmm}`;
+    if (diffD === 1) return `Hier ${hhmm}`;
+    if (diffD < 7) return `Il y a ${diffD}j · ${hhmm}`;
     return d.toLocaleDateString("fr-FR", {
       day: "numeric",
       month: "short",
-      year: "numeric",
+      year: diffD > 365 ? "numeric" : undefined,
     });
   } catch {
     return pubDate;
+  }
+}
+
+/** Returns true if article is less than 6 hours old */
+export function isRecentArticle(pubDate: string): boolean {
+  try {
+    const d = new Date(pubDate);
+    if (isNaN(d.getTime())) return false;
+    return Date.now() - d.getTime() < 6 * 60 * 60 * 1000;
+  } catch {
+    return false;
   }
 }

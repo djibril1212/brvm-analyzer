@@ -7,6 +7,7 @@ import {
   Building2,
   Layers,
   CalendarDays,
+  Briefcase,
   Settings,
   MessageSquare,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const NAV = [
   { icon: Building2,       label: "Sociétés",        href: "/stocks" },
   { icon: Layers,          label: "Secteurs",         href: "/sectors" },
   { icon: CalendarDays,    label: "Historique",       href: "/history" },
+  { icon: Briefcase,       label: "Portefeuille",     href: "/portfolio" },
 ];
 
 export function LeftSidebar() {

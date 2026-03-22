@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { PriceChart } from "@/components/stock/PriceChart";
 import { getLatestSession, getStockHistory } from "@/lib/api";
-import { fetchCompanyNews, formatNewsDate } from "@/lib/news";
+import { fetchCompanyNews, formatNewsDate, isRecentArticle } from "@/lib/news";
 import {
   formatVariation,
   formatCFA,
@@ -16,7 +16,7 @@ import {
 } from "@/lib/format";
 import type { Metadata } from "next";
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 interface Props {
   params: Promise<{ symbol: string }>;
@@ -254,7 +254,13 @@ async function StockPageContent({ symbol }: { symbol: string }) {
                     <p className="text-[13px] text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
                       {article.title}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {isRecentArticle(article.pubDate) && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gain uppercase tracking-wider">
+                          <span className="h-1.5 w-1.5 rounded-full bg-gain inline-block animate-pulse" />
+                          Récent
+                        </span>
+                      )}
                       {article.source && (
                         <Badge variant="outline" className="text-[10px] px-1.5 h-4 font-normal">
                           {article.source}
