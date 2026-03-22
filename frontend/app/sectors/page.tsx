@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getLatestSession } from "@/lib/api";
 import { formatVariation, variationBg, formatSessionDate, formatCFA } from "@/lib/format";
 import type { Metadata } from "next";
-import type { StockQuote, SectorIndex } from "@/types/brvm";
+import type { StockQuote } from "@/types/brvm";
 
 export const revalidate = 3600;
 

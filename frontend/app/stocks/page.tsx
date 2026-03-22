@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLatestSession } from "@/lib/api";
-import { formatVariation, variationBg, formatSessionDate, formatCFA } from "@/lib/format";
+import { formatVariation, variationBg, formatSessionDate } from "@/lib/format";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
