@@ -1,30 +1,67 @@
-// Client d'API — appelle le backend FastAPI (Railway) ou Supabase directement
-import type { MarketSession, StockQuote, DailyAnalysis } from "@/types/brvm";
+/**
+ * lib/api.ts
+ * Data access layer — market data from getdoli.com (primary) or FastAPI backend (fallback).
+ * Analysis (IA) still calls the FastAPI backend if available, falls back gracefully.
+ */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+import type { MarketSession, DailyAnalysis } from "@/types/brvm";
+import { fetchDoliSession, doliToSession } from "@/lib/doli";
 
-async function fetchAPI<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    next: { revalidate: 3600 }, // ISR 1h par défaut, webhook pour revalidation immédiate
-  });
-  if (!res.ok) {
-    throw new Error(`API ${path} → ${res.status} ${res.statusText}`);
-  }
-  return res.json() as Promise<T>;
-}
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
+
+// ─── Market data (getdoli.com → FastAPI fallback) ─────────────────────────────
 
 export async function getLatestSession(): Promise<MarketSession> {
-  return fetchAPI<MarketSession>("/api/market/latest");
+  // Primary: getdoli.com
+  try {
+    const payload = await fetchDoliSession();
+    if (payload) return doliToSession(payload);
+  } catch (err) {
+    console.warn("[api] getdoli.com indisponible, fallback FastAPI:", err);
+  }
+
+  // Fallback: FastAPI backend
+  if (!API_BASE) {
+    throw new Error("Impossible de récupérer les données de marché (getdoli.com et API_BASE indisponibles)");
+  }
+  const res = await fetch(`${API_BASE}/api/market/latest`, {
+    next: { revalidate: 300 },
+  });
+  if (!res.ok) throw new Error(`FastAPI /market/latest → HTTP ${res.status}`);
+  return res.json() as Promise<MarketSession>;
 }
 
-export async function getSession(date: string): Promise<MarketSession> {
-  return fetchAPI<MarketSession>(`/api/market/sessions/${date}`);
-}
-
-export async function getStockHistory(symbol: string, limit = 30): Promise<StockQuote[]> {
-  return fetchAPI<StockQuote[]>(`/api/market/stocks/${symbol}/history?limit=${limit}`);
-}
+// ─── AI Analysis (FastAPI backend, optional) ──────────────────────────────────
 
 export async function getLatestAnalysis(): Promise<DailyAnalysis> {
-  return fetchAPI<DailyAnalysis>("/api/market/analysis/latest");
+  if (!API_BASE) {
+    throw new Error("API_BASE non configuré — analyse IA indisponible");
+  }
+
+  const res = await fetch(`${API_BASE}/api/market/analysis/latest`, {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Analyse IA → HTTP ${res.status}`);
+  }
+
+  return res.json() as Promise<DailyAnalysis>;
+}
+
+// ─── Historical data (FastAPI backend, optional) ──────────────────────────────
+
+export async function getStockHistory(
+  symbol: string,
+  limit = 30
+): Promise<import("@/types/brvm").StockQuote[]> {
+  if (!API_BASE) throw new Error("API_BASE non configuré");
+
+  const res = await fetch(
+    `${API_BASE}/api/market/stocks/${symbol}/history?limit=${limit}`,
+    { next: { revalidate: 3600 } }
+  );
+
+  if (!res.ok) throw new Error(`Historique ${symbol} → HTTP ${res.status}`);
+  return res.json();
 }

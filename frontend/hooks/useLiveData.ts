@@ -1,26 +1,9 @@
 "use client";
 
 import useSWR from "swr";
+import type { MarketSession } from "@/types/brvm";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-interface LiveQuote {
-  ticker: string;
-  last_price: number | null;
-  variation_pct: number | null;
-  open_price: number | null;
-  prev_close: number | null;
-  volume: number | null;
-  status: string | null;
-  scraped_at: string | null;
-}
-
-interface LiveData {
-  market_open: boolean;
-  quotes: LiveQuote[];
-  count: number;
-}
-
+// BRVM est ouverte lun–ven 08h00–15h00 UTC
 function isMarketHours(): boolean {
   const now = new Date();
   const utcHour = now.getUTCHours();
@@ -31,37 +14,43 @@ function isMarketHours(): boolean {
 const fetcher = (url: string) =>
   fetch(url).then((r) => {
     if (!r.ok) throw new Error("live fetch failed");
-    return r.json();
+    return r.json() as Promise<MarketSession>;
   });
 
 export function useLiveData() {
   const inHours = isMarketHours();
 
-  const { data, error, isLoading } = useSWR<LiveData>(
-    `${API_URL}/api/market/live`,
+  const { data, error, isLoading } = useSWR<MarketSession>(
+    "/api/brvm",
     fetcher,
     {
-      // Rafraîchit toutes les 30s pendant la séance, arrête en dehors
-      refreshInterval: inHours ? 30_000 : 0,
+      // Refresh toutes les 60s en séance, pas en dehors
+      refreshInterval: inHours ? 60_000 : 0,
       revalidateOnFocus: inHours,
-      dedupingInterval: 25_000,
+      dedupingInterval: 55_000,
     }
   );
 
-  // Crée un Map ticker → quote pour lookup O(1)
-  const liveMap = new Map<string, LiveQuote>(
-    (data?.quotes ?? []).map((q) => [q.ticker, q])
+  // Map symbol → {last_price, variation_pct} pour lookup O(1)
+  const liveMap = new Map(
+    (data?.stocks ?? []).map((s) => [
+      s.symbol,
+      {
+        last_price: s.close,
+        variation_pct: s.variation_pct,
+      },
+    ])
   );
+
+  const lastUpdate =
+    data?.session_date ? new Date(data.session_date + "T12:00:00Z") : null;
 
   return {
     liveData: data,
     liveMap,
-    marketOpen: data?.market_open ?? false,
+    marketOpen: data != null && inHours,
     isLoading,
     isError: !!error,
-    lastUpdate:
-      data?.quotes[0]?.scraped_at
-        ? new Date(data.quotes[0].scraped_at)
-        : null,
+    lastUpdate,
   };
 }
