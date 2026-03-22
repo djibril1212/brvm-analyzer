@@ -17,9 +17,9 @@ from .prompt_builder import build_analysis_prompt, SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-MODEL = "claude-sonnet-4-20250514"
-MAX_TOKENS = 2048
-TEMPERATURE = 0.3  # Faible pour maximiser la reproductibilité factuelle
+MODEL = "claude-sonnet-4-6"
+MAX_TOKENS = 6000   # Augmenté pour le schéma enrichi (régime, rotation, 4 couches, scénarios)
+TEMPERATURE = 0.3   # Faible pour maximiser la reproductibilité factuelle
 
 
 def analyze_session(session: MarketSession) -> dict[str, Any]:
