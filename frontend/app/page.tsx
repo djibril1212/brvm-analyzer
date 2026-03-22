@@ -15,6 +15,7 @@ import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { DashboardSkeleton } from "@/components/market/LoadingSkeleton";
 import { getLatestSession, getLatestAnalysis } from "@/lib/api";
 import { formatSessionDate, formatVariation, sentimentLabel } from "@/lib/format";
+import { CalendarDays } from "lucide-react";
 import type { MarketSession } from "@/types/brvm";
 
 // ISR : revalidation via webhook (pipeline déclenche /api/revalidate)
@@ -99,17 +100,36 @@ async function DashboardContent() {
             {/* ── Left main column ── */}
             <div className="flex-1 min-w-0 space-y-5">
 
-              {/* Hero card: composite strip + UEMOA map + KPI grid */}
+              {/* Hero card: composite strip + KPI grid */}
               <Card className="rounded-xl border-border bg-card shadow-sm overflow-hidden">
                 <CardContent className="p-0">
 
                   {/* ── Composite Index hero strip ── */}
-                  <div className="px-5 sm:px-6 py-5 border-b border-border">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="px-5 sm:px-6 pt-5 pb-5 border-b border-border">
+                    {/* Date chip */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/50 border border-border/80 text-[11px] text-muted-foreground font-mono">
+                        <CalendarDays className="h-3 w-3" />
+                        {formatSessionDate(s.session_date)}
+                      </span>
+                      {sentiment && (
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-mono ${
+                            sentiment === "haussier"
+                              ? "text-gain border-[var(--color-gain)]/30 bg-[var(--color-gain)]/8"
+                              : sentiment === "baissier"
+                              ? "text-loss border-[var(--color-loss)]/30 bg-[var(--color-loss)]/8"
+                              : "text-amber-400 border-amber-500/30 bg-amber-500/8"
+                          }`}
+                        >
+                          {sentimentLabel(sentiment)}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                       <div>
-                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.18em] mb-1.5">
-                          Indice Composite BRVM
-                        </p>
+                        <p className="section-label mb-2">Indice Composite BRVM</p>
                         <div className="flex items-baseline gap-3">
                           <span
                             className={`font-display text-5xl sm:text-[60px] font-bold leading-none tabular-nums text-foreground${compositeUp ? " glow-gain" : ""}`}
@@ -119,44 +139,32 @@ async function DashboardContent() {
                             })}
                           </span>
                           <span
-                            className={`font-mono text-lg sm:text-xl font-semibold tabular-nums${compositeUp ? " text-gain" : " text-loss"}`}
+                            className={`font-mono text-xl font-semibold tabular-nums${compositeUp ? " text-gain" : " text-loss"}`}
                           >
                             {variationStr}
                           </span>
                         </div>
                       </div>
 
-                      {/* Session stats */}
-                      <div className="flex items-center gap-5 sm:gap-6">
+                      {/* Session breadown */}
+                      <div className="flex items-end gap-5 sm:gap-6 pb-1">
                         <div className="text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                            Hausses
-                          </p>
-                          <p className="font-mono text-lg font-bold text-gain tabular-nums mt-0.5">
+                          <p className="section-label mb-1">Hausses</p>
+                          <p className="font-display text-2xl font-bold text-gain tabular-nums">
                             {s.advancing}
                           </p>
                         </div>
-                        <div
-                          className="h-8 w-px bg-border"
-                          aria-hidden="true"
-                        />
+                        <div className="h-8 w-px bg-border self-end mb-1" aria-hidden="true" />
                         <div className="text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                            Baisses
-                          </p>
-                          <p className="font-mono text-lg font-bold text-loss tabular-nums mt-0.5">
+                          <p className="section-label mb-1">Baisses</p>
+                          <p className="font-display text-2xl font-bold text-loss tabular-nums">
                             {s.declining}
                           </p>
                         </div>
-                        <div
-                          className="h-8 w-px bg-border"
-                          aria-hidden="true"
-                        />
+                        <div className="h-8 w-px bg-border self-end mb-1" aria-hidden="true" />
                         <div className="text-center">
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                            Stables
-                          </p>
-                          <p className="font-mono text-lg font-bold text-muted-foreground tabular-nums mt-0.5">
+                          <p className="section-label mb-1">Stables</p>
+                          <p className="font-display text-2xl font-bold text-muted-foreground tabular-nums">
                             {s.unchanged}
                           </p>
                         </div>
@@ -178,28 +186,12 @@ async function DashboardContent() {
 
               {/* Market / AI Analysis tabs */}
               <Tabs defaultValue="market" className="space-y-4">
-                <TabsList className="bg-card border border-border shadow-sm">
-                  <TabsTrigger value="market" className="text-sm">
+                <TabsList className="bg-card border border-border shadow-sm h-9">
+                  <TabsTrigger value="market" className="text-[12px] h-7 px-4">
                     Marché
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="analysis"
-                    className="text-sm flex items-center gap-1.5"
-                  >
+                  <TabsTrigger value="analysis" className="text-[12px] h-7 px-4">
                     Analyse IA
-                    {sentiment && (
-                      <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                          sentiment === "haussier"
-                            ? "text-gain border-[var(--color-gain)]/30 bg-[var(--color-gain)]/10"
-                            : sentiment === "baissier"
-                            ? "text-loss border-[var(--color-loss)]/30 bg-[var(--color-loss)]/10"
-                            : "text-amber-600 border-amber-500/30 bg-amber-500/10 dark:text-amber-400"
-                        }`}
-                      >
-                        {sentimentLabel(sentiment)}
-                      </span>
-                    )}
                   </TabsTrigger>
                 </TabsList>
 

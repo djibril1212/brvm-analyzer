@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { sentimentLabel, sentimentColor } from "@/lib/format";
@@ -10,25 +10,36 @@ interface AnalysisSectionProps {
 }
 
 const profilColors: Record<string, string> = {
-  rendement: "text-gain border-[var(--color-gain)]/20",
-  croissance: "text-[var(--color-data-blue)] border-[var(--color-data-blue)]/20",
-  valeur: "text-amber-600 dark:text-amber-400 border-amber-500/20",
-  spéculatif: "text-purple-600 dark:text-purple-400 border-purple-500/20",
+  rendement: "text-gain border-[var(--color-gain)]/20 bg-[var(--color-gain)]/5",
+  croissance: "text-[var(--color-data-blue)] border-[var(--color-data-blue)]/20 bg-[var(--color-data-blue)]/5",
+  valeur: "text-amber-400 border-amber-500/20 bg-amber-500/5",
+  spéculatif: "text-purple-400 border-purple-500/20 bg-purple-500/5",
 };
 
 function ScoreBadge({ score }: { score: number }) {
-  const color =
-    score >= 7
-      ? "bg-emerald-500/10 text-gain border-[var(--color-gain)]/20"
-      : score >= 5
-      ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-      : "bg-red-500/10 text-loss border-[var(--color-loss)]/20";
+  const isHigh = score >= 7;
+  const isMid = score >= 5;
+  const colorClass = isHigh
+    ? "text-gain border-[var(--color-gain)]/30 bg-[var(--color-gain)]/10"
+    : isMid
+    ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
+    : "text-loss border-[var(--color-loss)]/30 bg-[var(--color-loss)]/10";
+
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold border ${color}`}
+      className={`inline-flex items-center justify-center min-w-[42px] h-[22px] px-2 rounded-full text-[11px] font-mono font-bold border ${colorClass}`}
     >
       {score}/10
     </span>
+  );
+}
+
+function SectionTitle({ icon: Icon, children, iconColor }: { icon: React.ElementType; children: React.ReactNode; iconColor?: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <Icon className="h-4 w-4 shrink-0" style={{ color: iconColor ?? "hsl(var(--muted-foreground))" }} />
+      <h3 className="text-[13px] font-semibold text-foreground">{children}</h3>
+    </div>
   );
 }
 
@@ -39,49 +50,52 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
       : analysis.analysis_json;
 
   return (
-    <div className="space-y-4">
-      {/* Résumé + sentiment */}
-      <Card className="bg-card border-border border-l-2 border-l-gold/50">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-gold" />
-              Analyse IA — Résumé de séance
-            </CardTitle>
+    <div className="space-y-3">
+      {/* Summary + sentiment */}
+      <Card className="bg-card border-border overflow-hidden relative">
+        {/* Left accent border */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-[3px]"
+          style={{ background: "linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary) / 0.2))" }}
+        />
+        <CardContent className="pt-4 pb-4 pl-5 pr-4">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3 mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-gold shrink-0" />
+              <span className="text-[13px] font-semibold text-foreground">Analyse IA — Résumé de séance</span>
+            </div>
             <Badge
               variant="outline"
-              className={`font-mono text-xs capitalize ${sentimentColor(analysis.market_sentiment)}`}
+              className={`font-mono text-[11px] capitalize shrink-0 ${sentimentColor(analysis.market_sentiment)}`}
             >
               {sentimentLabel(analysis.market_sentiment)}
             </Badge>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-[13px] text-muted-foreground leading-relaxed">
+
+          {/* Résumé executif */}
+          <p className="text-sm text-foreground/80 leading-relaxed mb-4">
             {data.resume_executif}
           </p>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          {/* Indices */}
+          <div className="grid gap-3 sm:grid-cols-2 pt-3 border-t border-border/60">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Composite
-              </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">
+              <p className="section-label">Composite</p>
+              <p className="text-xs text-foreground/70 leading-relaxed">
                 {data.analyse_indices.composite}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                BRVM-30
-              </p>
-              <p className="text-xs text-foreground/80 leading-relaxed">
+              <p className="section-label">BRVM-30</p>
+              <p className="text-xs text-foreground/70 leading-relaxed">
                 {data.analyse_indices.brvm30}
               </p>
             </div>
           </div>
 
           {data.analyse_indices.contexte_regional && (
-            <p className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-3 italic leading-relaxed">
+            <p className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-3 italic leading-relaxed mt-3">
               {data.analyse_indices.contexte_regional}
             </p>
           )}
@@ -91,59 +105,69 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
       {/* Top picks */}
       {data.top_picks.length > 0 && (
         <Card className="bg-card border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
+          <CardContent className="pt-4 pb-2 px-4">
+            <SectionTitle icon={TrendingUp} iconColor="hsl(var(--primary))">
               Valeurs sous surveillance IA
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.top_picks.map((pick, i) => (
-              <div key={pick.symbole}>
-                {i > 0 && <Separator className="mb-4" />}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono font-semibold text-[14px] text-gold">
-                      {pick.symbole}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{pick.nom}</span>
-                    {pick.score_opportunite !== undefined && (
-                      <ScoreBadge score={pick.score_opportunite} />
+            </SectionTitle>
+
+            <div className="space-y-0">
+              {data.top_picks.map((pick, i) => (
+                <div key={pick.symbole}>
+                  {i > 0 && <Separator className="my-3" />}
+                  <div className="space-y-2">
+                    {/* Symbol header */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono font-bold text-[15px] text-gold">
+                        {pick.symbole}
+                      </span>
+                      <span className="text-xs text-muted-foreground flex-1 min-w-0 truncate">
+                        {pick.nom}
+                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {pick.score_opportunite !== undefined && (
+                          <ScoreBadge score={pick.score_opportunite} />
+                        )}
+                        {pick.profil_investisseur && (
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] capitalize ${profilColors[pick.profil_investisseur] ?? ""}`}
+                          >
+                            {pick.profil_investisseur}
+                          </Badge>
+                        )}
+                        <Badge
+                          variant="outline"
+                          className={`font-mono text-[11px] shrink-0 ${
+                            pick.variation_pct >= 0
+                              ? "text-gain border-[var(--color-gain)]/20 bg-[var(--color-gain)]/5"
+                              : "text-loss border-[var(--color-loss)]/20 bg-[var(--color-loss)]/5"
+                          }`}
+                        >
+                          {pick.variation_pct > 0 ? "+" : ""}
+                          {pick.variation_pct.toFixed(2)}%
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Arguments */}
+                    <ul className="space-y-1 pl-1">
+                      {pick.arguments.map((arg, j) => (
+                        <li key={j} className="text-[12px] text-muted-foreground flex gap-2 leading-relaxed">
+                          <span className="text-gold mt-0.5 shrink-0 font-bold">·</span>
+                          <span>{arg}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {pick.note_de_prudence && (
+                      <p className="text-[11px] text-muted-foreground/50 italic pl-4 border-l border-border">
+                        {pick.note_de_prudence}
+                      </p>
                     )}
-                    {pick.profil_investisseur && (
-                      <Badge
-                        variant="outline"
-                        className={`text-xs capitalize ${profilColors[pick.profil_investisseur] ?? ""}`}
-                      >
-                        {pick.profil_investisseur}
-                      </Badge>
-                    )}
-                    <Badge
-                      variant="outline"
-                      className={`ml-auto font-mono text-xs ${
-                        pick.variation_pct >= 0
-                          ? "text-gain border-[var(--color-gain)]/20"
-                          : "text-loss border-[var(--color-loss)]/20"
-                      }`}
-                    >
-                      {pick.variation_pct > 0 ? "+" : ""}
-                      {pick.variation_pct.toFixed(2)}%
-                    </Badge>
                   </div>
-                  <ul className="space-y-1">
-                    {pick.arguments.map((arg, j) => (
-                      <li key={j} className="text-[13px] text-muted-foreground flex gap-2">
-                        <span className="text-gold mt-0.5 shrink-0">·</span>
-                        <span>{arg}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="text-[12px] text-muted-foreground/60 italic">
-                    {pick.note_de_prudence}
-                  </p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -151,28 +175,25 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
       {/* Opportunités détaillées */}
       {data.opportunites_detaillees && data.opportunites_detaillees.length > 0 && (
         <Card className="bg-card border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-blue-400" />
+          <CardContent className="pt-4 pb-3 px-4">
+            <SectionTitle icon={BarChart3} iconColor="var(--color-data-blue)">
               Opportunités détectées ({data.opportunites_detaillees.length} valeurs)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </SectionTitle>
             <div className="grid gap-2 sm:grid-cols-2">
               {data.opportunites_detaillees
                 .sort((a, b) => b.score - a.score)
                 .map((opp) => (
                   <div
                     key={opp.symbole}
-                    className="flex items-start gap-3 p-2 rounded-md bg-muted/30"
+                    className="flex items-start gap-3 p-2.5 rounded-lg bg-muted/20 border border-border/50"
                   >
-                    <div className="flex flex-col items-center gap-1 shrink-0">
-                      <span className="font-mono font-semibold text-xs text-foreground w-14 truncate">
+                    <div className="shrink-0 space-y-1">
+                      <span className="font-mono font-bold text-[12px] text-foreground block">
                         {opp.symbole}
                       </span>
                       <ScoreBadge score={opp.score} />
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground leading-relaxed pt-0.5">
                       {opp.signal}
                     </p>
                   </div>
@@ -182,56 +203,57 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
         </Card>
       )}
 
-      {/* Valeurs en surveillance */}
-      {data.valeurs_en_surveillance?.length > 0 && (
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Eye className="h-4 w-4 text-amber-400" />
-              En surveillance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {data.valeurs_en_surveillance.map((v) => (
-              <div key={v.symbole} className="flex gap-3 text-[13px]">
-                <span className="font-mono font-semibold text-gold w-16 shrink-0">
-                  {v.symbole}
-                </span>
-                <span className="text-muted-foreground">{v.raison}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {/* Surveillance + Éviter in a 2-col grid when both present */}
+      {(data.valeurs_en_surveillance?.length > 0 || (data.valeurs_a_eviter && data.valeurs_a_eviter.length > 0)) && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {data.valeurs_en_surveillance?.length > 0 && (
+            <Card className="bg-card border-border">
+              <CardContent className="pt-4 pb-3 px-4">
+                <SectionTitle icon={Eye} iconColor="#FBBF24">
+                  En surveillance
+                </SectionTitle>
+                <div className="space-y-2">
+                  {data.valeurs_en_surveillance.map((v) => (
+                    <div key={v.symbole} className="flex gap-2.5">
+                      <span className="font-mono font-semibold text-[12px] text-gold w-14 shrink-0 pt-0.5">
+                        {v.symbole}
+                      </span>
+                      <span className="text-[12px] text-muted-foreground leading-relaxed">{v.raison}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-      {/* Valeurs à éviter */}
-      {data.valeurs_a_eviter && data.valeurs_a_eviter.length > 0 && (
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-red-400" />
-              Signaux négatifs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {data.valeurs_a_eviter.map((v) => (
-              <div key={v.symbole} className="flex gap-3 text-[13px]">
-                <span className="font-mono font-semibold text-down/80 w-16 shrink-0">
-                  {v.symbole}
-                </span>
-                <span className="text-muted-foreground">{v.raison}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+          {data.valeurs_a_eviter && data.valeurs_a_eviter.length > 0 && (
+            <Card className="bg-card border-border">
+              <CardContent className="pt-4 pb-3 px-4">
+                <SectionTitle icon={AlertTriangle} iconColor="var(--color-loss)">
+                  Signaux négatifs
+                </SectionTitle>
+                <div className="space-y-2">
+                  {data.valeurs_a_eviter.map((v) => (
+                    <div key={v.symbole} className="flex gap-2.5">
+                      <span className="font-mono font-semibold text-[12px] text-loss w-14 shrink-0 pt-0.5">
+                        {v.symbole}
+                      </span>
+                      <span className="text-[12px] text-muted-foreground leading-relaxed">{v.raison}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Perspectives */}
       {data.perspectives && (
         <Card className="bg-card border-border">
-          <CardContent className="pt-5">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">Perspectives : </strong>
+          <CardContent className="pt-4 pb-4 px-4">
+            <p className="section-label mb-2">Perspectives</p>
+            <p className="text-[13px] text-foreground/70 leading-relaxed">
               {data.perspectives}
             </p>
           </CardContent>
@@ -239,7 +261,7 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
       )}
 
       {/* Disclaimer */}
-      <p className="text-xs text-muted-foreground/50 text-center px-4">
+      <p className="text-[11px] text-muted-foreground/40 text-center px-4 pb-1">
         {data.disclaimer}
       </p>
     </div>

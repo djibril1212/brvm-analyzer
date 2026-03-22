@@ -1,14 +1,7 @@
 "use client";
 
+import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { StockTable } from "./StockTable";
 import { formatCFA, formatVariation, variationBg } from "@/lib/format";
@@ -29,75 +22,89 @@ function MiniTable({
   liveMap: Map<string, { last_price: number | null; variation_pct: number | null }>;
 }) {
   return (
-    <div className="rounded-lg border border-border overflow-x-auto">
-      <Table className="table-fixed min-w-[360px]">
-        <colgroup>
-          <col className="w-[80px]" />
-          <col className="hidden md:table-column" />
-          <col className="w-[100px]" />
-          <col className="w-[90px]" />
-          {mode === "volume" && <col className="w-[110px] hidden sm:table-column" />}
-        </colgroup>
-        <TableHeader>
-          <TableRow className="border-border hover:bg-transparent">
-            <TableHead className="text-muted-foreground w-20">Symbole</TableHead>
-            <TableHead className="text-muted-foreground hidden md:table-cell">
-              Nom
-            </TableHead>
-            <TableHead className="text-muted-foreground text-right">
-              Cours
-            </TableHead>
-            <TableHead className="text-muted-foreground text-right">
-              Variation
-            </TableHead>
-            {mode === "volume" && (
-              <TableHead className="text-muted-foreground text-right hidden sm:table-cell">
-                Valeur échangée
-              </TableHead>
-            )}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {stocks.map((stock) => {
-            const live = liveMap.get(stock.symbol);
-            const price = live?.last_price ?? stock.close;
-            const variation = live?.variation_pct ?? stock.variation_pct;
-            const isLive = !!live?.last_price;
-            return (
-              <TableRow
-                key={stock.symbol}
-                className="border-border hover:bg-muted/40 transition-colors"
-              >
-                <TableCell className="font-mono font-semibold text-[13px] text-gold">
-                  {stock.symbol}
-                </TableCell>
-                <TableCell className="text-[13px] text-muted-foreground hidden md:table-cell overflow-hidden">
-                  <span className="block truncate">{stock.name}</span>
-                </TableCell>
-                <TableCell className="text-right font-mono text-[13px] tabular-nums text-foreground">
-                  {price.toLocaleString("fr-FR")}
-                  {isLive && (
-                    <span className="ml-1 h-1.5 w-1.5 rounded-full bg-up inline-block align-middle" />
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge
-                    variant="outline"
-                    className={`font-mono text-[12px] tabular-nums ${variationBg(variation)}`}
-                  >
-                    {formatVariation(variation)}
-                  </Badge>
-                </TableCell>
-                {mode === "volume" && (
-                  <TableCell className="text-right font-mono text-[13px] tabular-nums text-muted-foreground hidden sm:table-cell">
-                    {formatCFA(stock.value_traded, true)}
-                  </TableCell>
+    <div className="rounded-lg border border-border overflow-hidden">
+      {/* Header */}
+      <div
+        className={`grid gap-0 border-b border-border px-3 py-2 bg-muted/20 ${
+          mode === "volume"
+            ? "grid-cols-[20px_72px_1fr_90px_80px_100px]"
+            : "grid-cols-[20px_72px_1fr_90px_80px]"
+        }`}
+      >
+        <span className="section-label">#</span>
+        <span className="section-label">Symbole</span>
+        <span className="section-label hidden md:block">Société</span>
+        <span className="section-label text-right">Cours</span>
+        <span className="section-label text-right">Var.</span>
+        {mode === "volume" && (
+          <span className="section-label text-right hidden sm:block">Valeur éch.</span>
+        )}
+      </div>
+
+      {/* Rows */}
+      <div className="divide-y divide-border/50">
+        {stocks.map((stock, idx) => {
+          const live = liveMap.get(stock.symbol);
+          const price = live?.last_price ?? stock.close;
+          const variation = live?.variation_pct ?? stock.variation_pct;
+          const isLive = !!live?.last_price;
+
+          return (
+            <Link
+              key={stock.symbol}
+              href={`/stock/${stock.symbol}`}
+              className={`grid gap-0 items-center px-3 py-2.5 hover:bg-muted/30 transition-colors duration-100 ${
+                mode === "volume"
+                  ? "grid-cols-[20px_72px_1fr_90px_80px_100px]"
+                  : "grid-cols-[20px_72px_1fr_90px_80px]"
+              }`}
+            >
+              {/* Rank */}
+              <span className="text-[10px] font-mono text-muted-foreground/40 tabular-nums">
+                {idx + 1}
+              </span>
+
+              {/* Symbol */}
+              <span className="font-mono font-bold text-[13px] text-gold truncate">
+                {stock.symbol}
+              </span>
+
+              {/* Name */}
+              <span className="text-[12px] text-muted-foreground truncate pr-2 hidden md:block">
+                {stock.name}
+              </span>
+
+              {/* Price */}
+              <span className="font-mono text-[13px] text-foreground text-right tabular-nums">
+                {price.toLocaleString("fr-FR")}
+                {isLive && (
+                  <span
+                    className="ml-1 h-1.5 w-1.5 rounded-full inline-block align-middle"
+                    style={{ background: "var(--color-gain)" }}
+                  />
                 )}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+              </span>
+
+              {/* Variation badge */}
+              <div className="flex justify-end">
+                <Badge
+                  variant="outline"
+                  className={`font-mono text-[11px] tabular-nums px-1.5 h-5 ${variationBg(variation)}`}
+                >
+                  {formatVariation(variation)}
+                </Badge>
+              </div>
+
+              {/* Volume */}
+              {mode === "volume" && (
+                <span className="font-mono text-[12px] text-muted-foreground text-right tabular-nums hidden sm:block">
+                  {formatCFA(stock.value_traded, true)}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -122,32 +129,32 @@ export function StockTabs({ stocks }: StockTabsProps) {
 
   return (
     <Tabs defaultValue="hausses">
-      <TabsList className="bg-card border border-border">
-        <TabsTrigger value="hausses" className="text-sm">
-          Top Hausses
+      <TabsList className="bg-card border border-border h-9">
+        <TabsTrigger value="hausses" className="text-[12px] h-7 px-3 data-[state=active]:text-gain">
+          Hausses
           {topHausses.length > 0 && (
-            <span className="ml-1.5 text-[10px] font-mono text-emerald-400">
-              +{topHausses[0]?.variation_pct.toFixed(2)}%
+            <span className="ml-1.5 text-[10px] font-mono text-gain/80">
+              {topHausses[0]?.variation_pct.toFixed(1)}%
             </span>
           )}
         </TabsTrigger>
-        <TabsTrigger value="baisses" className="text-sm">
-          Top Baisses
+        <TabsTrigger value="baisses" className="text-[12px] h-7 px-3 data-[state=active]:text-loss">
+          Baisses
           {topBaisses.length > 0 && (
-            <span className="ml-1.5 text-[10px] font-mono text-red-400">
-              {topBaisses[0]?.variation_pct.toFixed(2)}%
+            <span className="ml-1.5 text-[10px] font-mono text-loss/80">
+              {topBaisses[0]?.variation_pct.toFixed(1)}%
             </span>
           )}
         </TabsTrigger>
-        <TabsTrigger value="echanges" className="text-sm">
-          Plus Échangés
+        <TabsTrigger value="echanges" className="text-[12px] h-7 px-3">
+          Échangés
         </TabsTrigger>
-        <TabsTrigger value="toutes" className="text-sm">
-          Toutes ({stocks.length})
+        <TabsTrigger value="toutes" className="text-[12px] h-7 px-3">
+          Tout ({stocks.length})
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="hausses" className="mt-4">
+      <TabsContent value="hausses" className="mt-3">
         {topHausses.length > 0 ? (
           <MiniTable stocks={topHausses} mode="variation" liveMap={liveMap} />
         ) : (
@@ -157,7 +164,7 @@ export function StockTabs({ stocks }: StockTabsProps) {
         )}
       </TabsContent>
 
-      <TabsContent value="baisses" className="mt-4">
+      <TabsContent value="baisses" className="mt-3">
         {topBaisses.length > 0 ? (
           <MiniTable stocks={topBaisses} mode="variation" liveMap={liveMap} />
         ) : (
@@ -167,7 +174,7 @@ export function StockTabs({ stocks }: StockTabsProps) {
         )}
       </TabsContent>
 
-      <TabsContent value="echanges" className="mt-4">
+      <TabsContent value="echanges" className="mt-3">
         {plusEchanges.length > 0 ? (
           <MiniTable stocks={plusEchanges} mode="volume" liveMap={liveMap} />
         ) : (
@@ -177,7 +184,7 @@ export function StockTabs({ stocks }: StockTabsProps) {
         )}
       </TabsContent>
 
-      <TabsContent value="toutes" className="mt-4">
+      <TabsContent value="toutes" className="mt-3">
         <StockTable stocks={stocks} liveMap={liveMap} />
       </TabsContent>
     </Tabs>

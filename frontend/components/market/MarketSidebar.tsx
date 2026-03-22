@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { DistributionChart } from "./DistributionChart";
@@ -71,14 +72,17 @@ function StockRow({
       : "hsl(var(--muted-foreground))";
 
   return (
-    <div className="flex items-center gap-2 py-1.5 min-w-0">
+    <Link
+      href={`/stock/${symbol}`}
+      className="flex items-center gap-2 py-1.5 min-w-0 hover:bg-muted/20 -mx-4 px-4 transition-colors duration-100 rounded"
+    >
       <span className="text-[10px] text-muted-foreground font-mono w-3 shrink-0 text-center tabular-nums">
         {rank}
       </span>
       {showSparkline && <MiniSparkline variation={variation} />}
       <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-1 min-w-0">
-          <span className="font-mono font-semibold text-[12px] text-foreground shrink-0">
+          <span className="font-mono font-bold text-[12px] text-gold shrink-0">
             {symbol}
           </span>
           {isLive && (
@@ -103,7 +107,7 @@ function StockRow({
           {formatVariation(variation)}
         </p>
       </div>
-    </div>
+    </Link>
   );
 }
 

@@ -6,6 +6,9 @@
   .text-balance { text-wrap: balance; }
   .text-gain    { color: var(--color-gain); }
   .text-loss    { color: var(--color-loss); }
+  .text-gold    { color: hsl(var(--primary)); }
+  .text-down    { color: var(--color-loss); }
+  .text-up      { color: var(--color-gain); }
   .text-data-blue { color: var(--color-data-blue); }
 
   /* Display font utility */
@@ -18,6 +21,15 @@
   .glow-gain  { text-shadow: 0 0 28px color-mix(in srgb, var(--color-gain) 40%, transparent); }
   .glow-loss  { text-shadow: 0 0 28px color-mix(in srgb, var(--color-loss) 40%, transparent); }
   .glow-gold  { text-shadow: 0 0 32px color-mix(in srgb, hsl(var(--primary)) 50%, transparent); }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: hsl(var(--muted-foreground));
+  }
 }
 
 /* Ticker tape */
@@ -204,17 +216,16 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Subtle dot-grid background */
+    /* Ambient light from top */
     background-image: radial-gradient(
-      circle,
-      hsl(228 34% 14% / 0.7) 1px,
-      transparent 1px
+      ellipse 120% 40% at 50% 0%,
+      hsl(228 48% 9%) 0%,
+      hsl(228 50% 5%) 65%
     );
-    background-size: 28px 28px;
+    background-attachment: fixed;
   }
 
-  .light body,
-  .light {
+  .light body {
     background-image: none;
   }
 

@@ -43,25 +43,30 @@ function MetricCard({
   const isLastRow = row === totalRows - 1;
   return (
     <div
-      className={`p-3.5 flex flex-col gap-1.5 min-w-0${span ? " col-span-2" : ""}`}
+      className={`p-4 sm:p-5 flex flex-col gap-2 min-w-0${span ? " col-span-2" : ""}`}
       style={{
         borderRight: !isLastCol ? "1px solid hsl(var(--border))" : undefined,
         borderBottom: !isLastRow ? "1px solid hsl(var(--border))" : undefined,
       }}
     >
-      <div className="flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-        <span className="text-[11px] text-muted-foreground font-medium truncate uppercase tracking-wide">
-          {label}
-        </span>
+      {/* Label + icon row */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="section-label truncate">{label}</span>
+        <div className="shrink-0 h-6 w-6 rounded-md bg-muted/60 flex items-center justify-center">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        </div>
       </div>
+
+      {/* Value */}
       <p
-        className={`font-mono text-xl font-semibold leading-tight tabular-nums truncate ${
+        className={`font-display text-2xl sm:text-3xl font-bold leading-none tabular-nums truncate ${
           valueColor ?? "text-foreground"
         }`}
       >
         {value}
       </p>
+
+      {/* Sub */}
       <p className="text-[11px] text-muted-foreground truncate">{sub}</p>
     </div>
   );
@@ -150,7 +155,7 @@ export function KpiGrid({ session, stocks, hideComposite = false }: KpiGridProps
   // Default 6-tile 3×2 grid
   const tiles: Omit<MetricCardProps, "col" | "row">[] = [
     {
-      icon: Activity, // replaced below — composite uses TrendingUp but we need it in default
+      icon: Activity,
       label: "Composite BRVM",
       value: session.composite.value.toLocaleString("fr-FR", {
         maximumFractionDigits: 2,

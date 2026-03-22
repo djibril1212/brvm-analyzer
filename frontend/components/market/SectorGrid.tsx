@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { formatVariation } from "@/lib/format";
 import type { SectorIndex, StockQuote } from "@/types/brvm";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface SectorGridProps {
   sectors: SectorIndex[];
@@ -40,119 +41,67 @@ const SECTOR_LABELS: Record<string, string> = {
   AUTRES: "Autres",
 };
 
-const SECTOR_KEYWORDS: Record<string, string[]> = {
-  Finance: ["banque", "bank", "assur", "financ", "crédit", "caisse", "bourse"],
-  Agriculture: ["agri", "cacao", "café", "palm", "sucr", "coton", "hévéa"],
-  Distribution: ["distribut", "commerce", "bolloré", "saph", "sphc"],
-  Industrie: ["industr", "ciment", "brasseri", "bière", "pharmaceut"],
-  Transport: ["transport", "air", "port", "logist", "sdsc"],
-  "Services Publics": ["électric", "eau", "ciec", "sonabel", "senelec"],
-  Télécommunication: ["télécom", "onatel", "orange", "mobile", "ttls"],
-  Énergie: ["pétrole", "gaz", "raffinerie", "total", "vivo", "ttlc"],
-};
-
-function getBestPerformer(sectorName: string, stocks: StockQuote[]) {
-  const keywords = SECTOR_KEYWORDS[sectorName] ?? [];
-  if (!keywords.length) return null;
-  const pool = stocks.filter((s) =>
-    keywords.some((kw) => s.name.toLowerCase().includes(kw))
-  );
-  if (!pool.length) return null;
-  return pool.reduce((best, s) =>
-    Math.abs(s.variation_pct) > Math.abs(best.variation_pct) ? s : best
-  );
-}
-
-function getSectorStockCount(sectorName: string, stocks: StockQuote[]) {
-  const keywords = SECTOR_KEYWORDS[sectorName] ?? [];
-  return keywords.length
-    ? stocks.filter((s) =>
-        keywords.some((kw) => s.name.toLowerCase().includes(kw))
-      ).length
-    : 0;
-}
-
-export function SectorGrid({ sectors, stocks = [] }: SectorGridProps) {
+export function SectorGrid({ sectors }: SectorGridProps) {
   if (!sectors.length) return null;
 
   const sorted = [...sectors].sort((a, b) => b.variation_pct - a.variation_pct);
+  const maxAbs = Math.max(...sorted.map((s) => Math.abs(s.variation_pct)), 1);
 
   return (
     <div>
-      <p className="text-sm font-semibold text-foreground mb-3">
-        Performance par secteur
-      </p>
-      <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-        {sorted.map((sector) => {
-          const up = sector.variation_pct > 0;
-          const down = sector.variation_pct < 0;
-          const Icon = up ? TrendingUp : down ? TrendingDown : Minus;
-          const label = SECTOR_LABELS[sector.name] ?? sector.name;
-          const best = getBestPerformer(sector.name, stocks);
-          const count = getSectorStockCount(sector.name, stocks);
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3 px-0.5">
+        <p className="section-label">Performance sectorielle</p>
+        <Link
+          href="/sectors"
+          className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Voir tout
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
 
-          const accentColor = up
+      {/* Ranked bar chart */}
+      <div className="space-y-1.5">
+        {sorted.map((sector, i) => {
+          const pct = sector.variation_pct;
+          const up = pct > 0;
+          const down = pct < 0;
+          const label = SECTOR_LABELS[sector.name] ?? sector.name;
+          const barPct = Math.abs(pct / maxAbs) * 85; // max 85% to leave breathing room
+          const color = up
             ? "var(--color-gain)"
             : down
             ? "var(--color-loss)"
-            : "hsl(var(--muted-foreground))";
+            : "hsl(var(--muted-foreground) / 0.4)";
 
           return (
-            <div
-              key={sector.name}
-              className="group relative p-3.5 flex flex-col gap-2 min-w-0 rounded-xl border border-border bg-card hover:shadow-md hover:scale-[1.02] hover:border-primary/30 transition-all duration-200 cursor-pointer overflow-hidden"
-            >
-              {/* Gradient accent strip */}
-              <div
-                className="absolute inset-x-0 top-0 h-0.5 rounded-t-xl transition-opacity duration-200 opacity-60 group-hover:opacity-100"
-                style={{ background: accentColor }}
-              />
+            <div key={sector.name} className="flex items-center gap-3 group">
+              {/* Rank */}
+              <span className="w-4 text-right text-[10px] font-mono text-muted-foreground/40 tabular-nums shrink-0">
+                {i + 1}
+              </span>
 
-              {/* Top row */}
-              <div className="flex items-center justify-between gap-2">
-                <span
-                  className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide truncate"
-                  title={sector.name}
-                >
-                  {label}
-                </span>
-                <Icon
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: accentColor }}
+              {/* Label */}
+              <span className="w-28 text-[12px] text-foreground/70 truncate shrink-0 group-hover:text-foreground transition-colors duration-150">
+                {label}
+              </span>
+
+              {/* Bar */}
+              <div className="flex-1 h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${barPct}%`, background: color }}
                 />
               </div>
 
-              {/* Variation value */}
-              <p
-                className="font-mono text-lg font-bold leading-tight tabular-nums"
-                style={{ color: accentColor }}
+              {/* Value */}
+              <span
+                className="w-16 text-right text-[11px] font-mono font-semibold tabular-nums shrink-0"
+                style={{ color }}
               >
-                {formatVariation(sector.variation_pct)}
-              </p>
-
-              {/* Bottom row */}
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-[10px] text-muted-foreground">
-                  {count > 0 ? `${count} valeur${count > 1 ? "s" : ""}` : ""}
-                </span>
-                {best && (
-                  <span
-                    className="text-[10px] font-mono truncate"
-                    style={{
-                      color:
-                        best.variation_pct > 0
-                          ? "var(--color-gain)"
-                          : best.variation_pct < 0
-                          ? "var(--color-loss)"
-                          : "hsl(var(--muted-foreground))",
-                    }}
-                  >
-                    {best.symbol}{" "}
-                    {best.variation_pct > 0 ? "+" : ""}
-                    {best.variation_pct.toFixed(2)}%
-                  </span>
-                )}
-              </div>
+                {formatVariation(pct)}
+              </span>
             </div>
           );
         })}
