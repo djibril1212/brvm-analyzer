@@ -8,6 +8,7 @@ import {
   Layers,
   CalendarDays,
   Briefcase,
+  FlaskConical,
   Settings,
   MessageSquare,
 } from "lucide-react";
@@ -29,6 +30,7 @@ const NAV = [
   { icon: Layers,          label: "Secteurs",         href: "/sectors" },
   { icon: CalendarDays,    label: "Historique",       href: "/history" },
   { icon: Briefcase,       label: "Portefeuille",     href: "/portfolio" },
+  { icon: FlaskConical,    label: "Pipeline",         href: "/admin/pipeline" },
 ];
 
 export function LeftSidebar() {

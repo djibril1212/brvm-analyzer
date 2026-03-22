@@ -10,8 +10,9 @@ import os
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Header, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Header, UploadFile, status
 from pydantic import BaseModel
+from pathlib import Path
 
 from ...pipeline.run import run_pipeline, PipelineResult
 
@@ -114,6 +115,88 @@ async def trigger_pipeline_sync(body: TriggerRequest) -> dict:
         "duration_seconds": round(result.duration_seconds, 2),
         "steps_completed": result.steps_completed,
         "error": result.error,
+    }
+
+
+@router.post(
+    "/trigger-upload",
+    response_model=dict,
+    dependencies=[Depends(_verify_pipeline_secret)],
+)
+async def trigger_pipeline_upload(
+    file: UploadFile = File(...),
+    session_date: str = Form(...),
+    skip_ai: bool = Form(False),
+    skip_revalidation: bool = Form(False),
+) -> dict:
+    """
+    Reçoit un PDF BOC uploadé et exécute le pipeline dessus.
+    Utile pour les BOC anciens ou quand le téléchargement auto échoue.
+    """
+    from datetime import date as date_type
+    from ...pipeline.downloader import RAW_DIR
+
+    try:
+        target_date = date_type.fromisoformat(session_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Date invalide : {session_date!r}")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Fichier vide")
+
+    pdf_path = RAW_DIR / f"boc_{target_date.isoformat()}.pdf"
+    pdf_path.write_bytes(content)
+    logger.info("PDF uploadé : %s (%d octets)", pdf_path, len(content))
+
+    result = run_pipeline(
+        session_date=target_date,
+        skip_download=True,
+        skip_ai=skip_ai,
+        skip_revalidation=skip_revalidation,
+    )
+
+    return {
+        "success": result.success,
+        "session_date": str(result.session_date),
+        "duration_seconds": round(result.duration_seconds, 2),
+        "steps_completed": result.steps_completed,
+        "error": result.error,
+    }
+
+
+@router.get(
+    "/status/{session_date}",
+    response_model=dict,
+    dependencies=[Depends(_verify_pipeline_secret)],
+)
+async def get_pipeline_status(session_date: str) -> dict:
+    """Vérifie si une séance a déjà été analysée en DB."""
+    from datetime import date as date_type
+    from ...db.client import get_client
+
+    try:
+        d = date_type.fromisoformat(session_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Date invalide : {session_date!r}")
+
+    db = get_client()
+    try:
+        session = db.get_session(d)
+        has_session = session is not None
+    except Exception:
+        has_session = False
+
+    try:
+        analysis = db.get_analysis(d)
+        has_analysis = analysis is not None
+    except Exception:
+        has_analysis = False
+
+    return {
+        "session_date": str(d),
+        "has_session": has_session,
+        "has_analysis": has_analysis,
     }
 
 
