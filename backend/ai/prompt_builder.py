@@ -208,47 +208,28 @@ def build_analysis_prompt(session: MarketSession) -> str:
 
 {json.dumps(schema, ensure_ascii=False, indent=2)}
 
-## INSTRUCTIONS D'ANALYSE — APPLIQUE LES 3 FRAMEWORKS
+## INSTRUCTIONS D'ANALYSE
 
-### ÉTAPE 1 — Détermination du Régime de Marché
-Utilise le breadth_ratio ({breadth_ratio}) et la divergence Composite/BRVM30 ({divergence}%) \
-pour identifier le régime parmi : ACCUMULATION / TENDANCE_HAUSSIÈRE / DISTRIBUTION / \
-TENDANCE_BAISSIÈRE / ROTATION / CONSOLIDATION.
-La concentration top-3 ({concentration_pct}%) indique si le mouvement est large ou concentré.
+### ÉTAPE 1 — Régime de marché (synthèse dans resume_executif)
+Breadth_ratio = {breadth_ratio}, divergence Composite/BRVM30 = {divergence}%, concentration top-3 = {concentration_pct}%.
+Identifie le régime (ACCUMULATION / TENDANCE_HAUSSIÈRE / DISTRIBUTION / TENDANCE_BAISSIÈRE / ROTATION / CONSOLIDATION) \
+et la posture Risk-On/Risk-Off. Synthétise en 4-5 phrases dans resume_executif.
 
-### ÉTAPE 2 — Analyse de Rotation Sectorielle
-Identifie quels secteurs performent au-dessus du Composite et lesquels sous-performent. \
-Détermine si on est en phase 1 (Finance/Industrie), 2 (Distribution/Services) \
-ou phase défensive (rendement/Agriculture). Note la posture Risk-On ou Risk-Off.
-
-### ÉTAPE 3 — Scoring d'Impact sur chaque valeur notable
-Pour les valeurs avec variation > 1% OU volume significatif, calcule :
-Impact = Score_Prix × Multiplicateur_Portée × Modificateur_Forward
-Utilise ces scores pour prioriser les top_picks et opportunites_detaillees.
-
-### ÉTAPE 4 — Analyse par couches pour les top_picks (3-5 valeurs)
-Pour chaque pick, applique les 4 couches :
-1. VALORISATION : PER vs médiane sectorielle, rendement vs taux BCEAO 5.5%
-2. MOMENTUM : force du mouvement (variation % × volume relatif)
-3. ROTATION : cohérence avec le régime de marché identifié
-4. RISQUES : liquidité (< 1M XOF = risque élevé), réglementaire, macro
-
-Arguments obligatoires : minimum 4 par valeur, CHACUN avec le chiffre exact issu des données.
+### ÉTAPE 2 — Top picks (3-5 valeurs)
+MINIMUM 4 arguments par valeur, chacun avec chiffre précis issu des données.
 Exemple correct : "PER de 8,2x — 32% de décote vs médiane Finance BRVM (12x)"
 Exemple incorrect : "valorisation attractive" (sans chiffre)
 
-### ÉTAPE 5 — Scan complet opportunites_detaillees
-Scanne TOUTES les actions. Inclure toute valeur répondant à AU MOINS un critère :
-  - PER ≤ 15 avec données disponibles
+### ÉTAPE 3 — opportunites_detaillees (max 15 entrées)
+Sélectionne uniquement les valeurs répondant à AU MOINS un critère :
+  - PER ≤ 15 (données disponibles)
   - Rendement dividende ≥ 3%
-  - Variation ≥ 2% OU ≤ -2%
+  - |Variation| ≥ 2%
   - Volume dans le top 10 de la séance
-Pour chaque entrée : symbole + score (0-10) + signal en 1 phrase avec le chiffre clé.
+Pour chaque entrée : symbole + score (0-10) + 1 phrase avec le chiffre clé.
 
-### ÉTAPE 6 — Perspectives forward-looking
-Identifie les catalyseurs probables : dates de détachement de dividende connues, \
-résultats semestriels attendus, politique BCEAO, dynamiques UEMOA.
-Formule 2 scénarios : bull (probabilité estimée %) et bear (probabilité estimée %).
+### ÉTAPE 4 — Perspectives
+2 scénarios (bull + bear) avec probabilité estimée % et catalyseurs UEMOA/BCEAO.
 
 Rappel absolu : UNIQUEMENT le JSON valide, aucun texte avant ou après."""
 
@@ -315,27 +296,12 @@ def _get_output_schema() -> dict:
 
         "market_sentiment": "haussier | baissier | neutre | mitigé",
 
-        "regime_marche": {
-            "type": "ACCUMULATION | TENDANCE_HAUSSIÈRE | DISTRIBUTION | TENDANCE_BAISSIÈRE | ROTATION | CONSOLIDATION",
-            "breadth_ratio": "float (calculé : avancées / total)",
-            "posture": "RISK-ON | RISK-OFF | NEUTRE",
-            "volatilite": "FAIBLE | MODÉRÉE | ÉLEVÉE",
-            "commentaire": "string (2-3 phrases sur le régime avec chiffres)"
-        },
-
-        "resume_executif": "string (4-5 phrases : régime + breadth + secteur dominant + signal clé + implication)",
+        "resume_executif": "string (4-5 phrases : régime de marché + breadth ratio + secteur dominant + signal clé + implication)",
 
         "analyse_indices": {
             "composite": "string (valeur exacte, variation, régime de tendance)",
             "brvm30": "string (valeur exacte, variation, divergence vs composite si notable)",
             "contexte_regional": "string (contexte UEMOA/BCEAO, macro pertinent pour l'interprétation)"
-        },
-
-        "rotation_sectorielle": {
-            "phase_cycle": "Phase 1 (Finance/Industrie) | Phase 2 (Distribution/Services) | Phase 3 (Agriculture/Matières) | Défensive",
-            "secteurs_leaders": ["string — secteur en surperformance avec variation exacte"],
-            "secteurs_retardataires": ["string — secteur en sous-performance avec variation exacte"],
-            "commentaire": "string (analyse de la rotation avec chiffres)"
         },
 
         "top_secteurs": [
@@ -352,13 +318,8 @@ def _get_output_schema() -> dict:
                 "nom": "string",
                 "variation_pct": "float",
                 "volume": "int",
-                "score_opportunite": "int (0-10, calculé selon la grille fondamentale)",
-                "impact_score": "float (calculé : Score_Prix × Multiplicateur_Portée × Modificateur_Forward)",
+                "score_opportunite": "int (0-10)",
                 "profil_investisseur": "rendement | croissance | valeur | spéculatif",
-                "couche_valorisation": "string (PER vs médiane sectorielle + rendement vs taux BCEAO 5.5%)",
-                "couche_momentum": "string (force du mouvement : variation % × volume relatif médiane)",
-                "couche_rotation": "string (cohérence avec le régime de marché identifié)",
-                "couche_risques": "string (liquidité, réglementaire CREPMF, macro UEMOA)",
                 "arguments": [
                     "string — MINIMUM 4 arguments, chacun avec chiffre précis extrait des données"
                 ],
@@ -370,7 +331,6 @@ def _get_output_schema() -> dict:
             {
                 "symbole": "string",
                 "score": "int (0-10)",
-                "impact_score": "float",
                 "signal": "string (1 phrase avec le chiffre clé : PER, rendement, variation ou volume)"
             }
         ],
