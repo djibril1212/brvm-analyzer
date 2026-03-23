@@ -252,10 +252,40 @@ export function AnalysisSection({ analysis }: AnalysisSectionProps) {
       {data.perspectives && (
         <Card className="bg-card border-border">
           <CardContent className="pt-4 pb-4 px-4">
-            <p className="section-label mb-2">Perspectives</p>
-            <p className="text-[13px] text-foreground/70 leading-relaxed">
-              {data.perspectives}
-            </p>
+            <p className="section-label mb-3">Perspectives</p>
+            {typeof data.perspectives === "string" ? (
+              <p className="text-[13px] text-foreground/70 leading-relaxed">
+                {data.perspectives}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {data.perspectives.scenario_bull && (
+                  <div className="flex gap-2.5">
+                    <span className="text-gain text-[11px] font-bold font-mono w-8 shrink-0 pt-0.5">↑</span>
+                    <p className="text-[13px] text-foreground/70 leading-relaxed">{data.perspectives.scenario_bull}</p>
+                  </div>
+                )}
+                {data.perspectives.scenario_bear && (
+                  <div className="flex gap-2.5">
+                    <span className="text-loss text-[11px] font-bold font-mono w-8 shrink-0 pt-0.5">↓</span>
+                    <p className="text-[13px] text-foreground/70 leading-relaxed">{data.perspectives.scenario_bear}</p>
+                  </div>
+                )}
+                {data.perspectives.catalyseurs_a_suivre && data.perspectives.catalyseurs_a_suivre.length > 0 && (
+                  <div className="pt-1 border-t border-border/60">
+                    <p className="section-label mb-1.5">Catalyseurs à surveiller</p>
+                    <ul className="space-y-0.5">
+                      {data.perspectives.catalyseurs_a_suivre.map((c, i) => (
+                        <li key={i} className="text-[12px] text-muted-foreground flex gap-2">
+                          <span className="text-primary shrink-0">·</span>
+                          <span>{c}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

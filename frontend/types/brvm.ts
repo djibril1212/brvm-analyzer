@@ -74,7 +74,14 @@ export interface AnalysisJson {
   }>;
   valeurs_en_surveillance: Array<{ symbole: string; raison: string }>;
   valeurs_a_eviter?: Array<{ symbole: string; raison: string }>;
-  perspectives: string;
+  /** Peut être une string (ancien schema) ou un objet (nouveau schema) */
+  perspectives:
+    | string
+    | {
+        scenario_bull?: string;
+        scenario_bear?: string;
+        catalyseurs_a_suivre?: string[];
+      };
   disclaimer: string;
 }
 
