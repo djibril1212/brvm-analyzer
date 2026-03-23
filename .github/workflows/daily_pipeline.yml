@@ -35,9 +35,7 @@ jobs:
           cache-dependency-path: "backend/requirements.txt"
 
       - name: Install dependencies
-        run: |
-          cd backend
-          pip install -r requirements.txt
+        run: pip install -r backend/requirements.txt
 
       - name: Run pipeline
         env:
@@ -48,15 +46,17 @@ jobs:
           NEXT_REVALIDATION_SECRET: ${{ secrets.NEXT_REVALIDATION_SECRET }}
           BRVM_BOC_BASE_URL: ${{ vars.BRVM_BOC_BASE_URL }}
           ENVIRONMENT: production
+          PYTHONPATH: .
+          PIPELINE_SESSION_DATE: ${{ github.event.inputs.session_date }}
+          PIPELINE_SKIP_AI: ${{ github.event.inputs.skip_ai }}
         run: |
-          cd backend
           python -c "
-          import sys
-          from pipeline.run import run_pipeline
+          import sys, os
+          from backend.pipeline.run import run_pipeline
           from datetime import date
 
-          session_date_str = '${{ github.event.inputs.session_date }}'
-          skip_ai = '${{ github.event.inputs.skip_ai }}' == 'true'
+          session_date_str = os.getenv('PIPELINE_SESSION_DATE', '')
+          skip_ai = os.getenv('PIPELINE_SKIP_AI', 'false') == 'true'
 
           session_date = date.fromisoformat(session_date_str) if session_date_str else None
 
@@ -66,14 +66,14 @@ jobs:
           )
 
           if not result.success:
-              print(f'Pipeline ÉCHOUÉ : {result.error}', file=sys.stderr)
+              print(f'Pipeline ECHOUE : {result.error}', file=sys.stderr)
               sys.exit(1)
 
-          print(f'Pipeline OK en {result.duration_seconds:.1f}s — étapes : {result.steps_completed}')
+          print(f'Pipeline OK en {result.duration_seconds:.1f}s — etapes : {result.steps_completed}')
           "
 
       - name: Notify on failure
         if: failure()
         run: |
-          echo "::error::Pipeline BRVM échoué pour la séance du $(date +%Y-%m-%d)"
+          echo "::error::Pipeline BRVM echoue pour la seance du $(date +%Y-%m-%d)"
           # TODO : ajouter une notification Slack/email ici
