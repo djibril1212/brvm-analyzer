@@ -77,22 +77,31 @@ def _parse_json_response(raw: str, session: MarketSession) -> dict[str, Any]:
     Parse la réponse Claude en JSON.
     Tente d'extraire le JSON même si Claude a ajouté du texte autour.
     """
+    import re
+
     # Tentative directe
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
         pass
 
-    # Extraction entre ```json ... ``` ou ``` ... ```
-    import re
-    match = re.search(r"```(?:json)?\s*([\s\S]*?)```", raw)
+    # Extraction entre ```json ... ``` ou ``` ... ``` (avec ou sans backtick fermant)
+    match = re.search(r"```(?:json)?\s*([\s\S]*?)(?:```|$)", raw)
     if match:
         try:
             return json.loads(match.group(1).strip())
         except json.JSONDecodeError:
             pass
 
-    # Extraction du premier { ... }
+    # Si la réponse commence par ```json, strip la première ligne et parse le reste
+    stripped = re.sub(r"^```(?:json)?\s*", "", raw.strip())
+    stripped = re.sub(r"\s*```\s*$", "", stripped)
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
+
+    # Extraction du premier { ... } (le plus grand bloc)
     match = re.search(r"\{[\s\S]*\}", raw)
     if match:
         try:
