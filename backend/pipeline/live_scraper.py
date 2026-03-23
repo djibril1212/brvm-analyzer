@@ -1,14 +1,14 @@
 """
-Scraper temps réel des cours BRVM.
-Stratégie 1 : httpx avec headers navigateur (rapide, sans Playwright)
-Stratégie 2 : Playwright headless (si stratégie 1 échoue)
+Scraper temps réel des cours BRVM via getdoli.com.
+getdoli.com scrape brvm.org et expose les données dans son payload RSC (Next.js).
+On extrait le JSON embarqué dans les blocs self.__next_f.push([1,"..."]).
 
-Données cibles : last_price, variation_pct, open_price, high, low,
-                 bid, ask, volume, status pour les 47 actions BRVM.
+Données disponibles : ticker, last_price, variation_pct, prev_close, bid, ask, volume, etc.
 """
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import re
 from datetime import datetime, timezone
@@ -18,8 +18,7 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
-BRVM_LIVE_URL = "https://www.brvm.org/fr/cours-de-bourse/0"
-SIKA_URL = "https://www.sikafinance.com/marches/cotation"
+DOLI_URL = "https://www.getdoli.com/fr/market"
 
 BROWSER_HEADERS = {
     "User-Agent": (
@@ -28,138 +27,142 @@ BROWSER_HEADERS = {
         "Chrome/122.0.0.0 Safari/537.36"
     ),
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-    "Cache-Control": "no-cache",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "none",
-    "Upgrade-Insecure-Requests": "1",
+    "Accept-Language": "fr-FR,fr;q=0.9",
 }
 
 
 def is_market_open() -> bool:
     """Retourne True si la BRVM est potentiellement ouverte (9h-14h UTC, lun-ven)."""
     now = datetime.now(timezone.utc)
-    return (
-        now.weekday() < 5  # lundi-vendredi
-        and 8 <= now.hour < 15  # fenêtre large autour de 9h-14h UTC
-    )
+    return now.weekday() < 5 and 8 <= now.hour < 15
 
 
-async def scrape_with_httpx() -> list[dict[str, Any]] | None:
-    """Tente de scraper le site BRVM via httpx (sans Playwright)."""
-    try:
-        async with httpx.AsyncClient(
-            timeout=20,
-            follow_redirects=True,
-            verify=False,
-            headers=BROWSER_HEADERS,
-        ) as client:
-            resp = await client.get(BRVM_LIVE_URL)
-            if resp.status_code != 200:
-                logger.warning("httpx scrape: HTTP %s", resp.status_code)
-                return None
-
-            return _parse_brvm_html(resp.text)
-
-    except Exception as exc:
-        logger.warning("httpx scrape échoué: %s", exc)
-        return None
-
-
-async def scrape_with_playwright() -> list[dict[str, Any]] | None:
-    """Scrape via Playwright (vrai navigateur headless)."""
-    try:
-        from playwright.async_api import async_playwright
-
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-            )
-            page = await browser.new_page(
-                extra_http_headers={"Accept-Language": "fr-FR,fr;q=0.9"}
-            )
-            await page.goto(BRVM_LIVE_URL, wait_until="networkidle", timeout=30000)
-            # Attendre que le tableau soit chargé
-            await page.wait_for_selector("table", timeout=15000)
-            html = await page.content()
-            await browser.close()
-
-        return _parse_brvm_html(html)
-
-    except ImportError:
-        logger.warning("playwright non installé")
-        return None
-    except Exception as exc:
-        logger.warning("Playwright scrape échoué: %s", exc)
-        return None
-
-
-def _parse_brvm_html(html: str) -> list[dict[str, Any]]:
-    """
-    Parse le HTML de la page BRVM pour extraire les cours.
-    Extrait depuis le widget ticker : <div class="item"><span>TICKER</span>...
-    Format : ticker, last_price (ex: "5 200"), variation_pct (ex: "-0,77%")
-    """
-    rows: list[dict[str, Any]] = []
-    scraped_at = datetime.now(timezone.utc).isoformat()
-
-    # Pattern du widget ticker (tous les 47 titres)
-    item_pattern = re.compile(
-        r'<div class="item"><span>([A-Z]+)</span>&nbsp;'
-        r'<span>([\d\s]+)</span>&nbsp;'
-        r'<span>([+-]?[\d,]+%)</span>',
-        re.IGNORECASE,
-    )
-
-    def to_float(s: str) -> float | None:
-        s = s.strip().replace("\xa0", "").replace(" ", "").replace(",", ".").replace("%", "")
+def _extract_rsc_content(html: str) -> str:
+    """Extrait et concatène les chunks RSC de getdoli.com."""
+    chunks: list[str] = []
+    pattern = re.compile(r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)')
+    for m in pattern.finditer(html):
+        raw = m.group(1)
         try:
-            return float(s)
-        except (ValueError, TypeError):
-            return None
+            chunks.append(json.loads('"' + raw + '"'))
+        except (json.JSONDecodeError, ValueError):
+            chunks.append(
+                raw.replace("\\n", "\n")
+                   .replace("\\r", "\r")
+                   .replace("\\t", "\t")
+                   .replace('\\"', '"')
+                   .replace("\\\\", "\\")
+            )
+    return "\n".join(chunks)
 
-    for m in item_pattern.finditer(html):
-        ticker = m.group(1).upper()
-        last_price = to_float(m.group(2))
-        variation_pct = to_float(m.group(3))
+
+def _find_stock_array(content: str) -> list[dict[str, Any]] | None:
+    """
+    Cherche le tableau de stocks dans le contenu RSC.
+    Parcourt les lignes JSON du format 'id:payload'.
+    """
+    # Cherche le marker "data":[{ contenant des stocks (ticker présent)
+    marker = '"data":['
+    idx = -1
+    search_from = 0
+    while True:
+        pos = content.find(marker, search_from)
+        if pos == -1:
+            break
+        # Vérifie que cette section data contient bien des stocks
+        snippet = content[pos : pos + 200]
+        if '"ticker"' in snippet:
+            idx = pos
+            break
+        search_from = pos + 1
+    if idx == -1:
+        return None
+
+    # Remonte jusqu'au { parent du bloc "data"
+    obj_start = idx
+    while obj_start > 0 and content[obj_start] != "{":
+        obj_start -= 1
+
+    # Trouve la fin du JSON en comptant les accolades
+    depth = 0
+    in_str = False
+    limit = min(obj_start + 1_000_000, len(content))
+    for i in range(obj_start, limit):
+        c = content[i]
+        if c == '"' and (i == 0 or content[i - 1] != "\\"):
+            in_str = not in_str
+        elif not in_str:
+            if c == "{":
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        obj = json.loads(content[obj_start : i + 1])
+                        data = obj.get("data")
+                        if isinstance(data, list) and data and isinstance(data[0], dict) and "ticker" in data[0]:
+                            return data
+                    except (json.JSONDecodeError, ValueError):
+                        pass
+                    break
+    return None
+
+
+def _parse_doli_stocks(stocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Convertit les stocks getdoli en format live_quotes."""
+    scraped_at = datetime.now(timezone.utc).isoformat()
+    rows = []
+    for s in stocks:
+        ticker = s.get("ticker")
+        if not ticker:
+            continue
         rows.append({
             "ticker": ticker,
-            "last_price": last_price,
-            "variation_pct": variation_pct,
+            "last_price": s.get("last_price"),
+            "variation_pct": s.get("variation_pct"),
+            "prev_close": s.get("prev_close"),
+            "open_price": s.get("open_price"),
+            "high": s.get("high"),
+            "low": s.get("low"),
+            "bid": s.get("bid"),
+            "ask": s.get("ask"),
+            "volume": s.get("qty_total") or s.get("volume"),
             "scraped_at": scraped_at,
             "status": "live",
         })
-
-    logger.info("HTML parsé: %d actions trouvées", len(rows))
-    return rows if rows else []
+    return rows
 
 
 async def run_live_scrape() -> list[dict[str, Any]]:
     """
-    Lance le scraping live. Essaie httpx d'abord, puis Playwright.
-    Retourne la liste des cours ou une liste vide en cas d'échec.
+    Scrape getdoli.com et retourne les cours live.
+    Retourne une liste vide en cas d'échec.
     """
-    logger.info("Démarrage scrape live BRVM...")
+    logger.info("Démarrage scrape live via getdoli.com...")
+    try:
+        async with httpx.AsyncClient(
+            timeout=25,
+            follow_redirects=True,
+            headers=BROWSER_HEADERS,
+        ) as client:
+            resp = await client.get(DOLI_URL)
+            if resp.status_code != 200:
+                logger.warning("getdoli: HTTP %s", resp.status_code)
+                return []
 
-    # Stratégie 1 : httpx (léger)
-    data = await scrape_with_httpx()
-    if data:
-        logger.info("Scrape httpx OK: %d actions", len(data))
-        return data
+            content = _extract_rsc_content(resp.text)
+            stocks = _find_stock_array(content)
+            if not stocks:
+                logger.error("getdoli: aucune donnée stock dans le payload RSC")
+                return []
 
-    # Stratégie 2 : Playwright (lourd mais fiable)
-    logger.info("httpx échoué, tentative Playwright...")
-    data = await scrape_with_playwright()
-    if data:
-        logger.info("Scrape Playwright OK: %d actions", len(data))
-        return data
+            rows = _parse_doli_stocks(stocks)
+            logger.info("Scrape getdoli OK: %d actions", len(rows))
+            return rows
 
-    logger.error("Toutes les stratégies de scrape ont échoué")
-    return []
+    except Exception as exc:
+        logger.error("Scrape getdoli échoué: %s", exc)
+        return []
 
 
 def scrape_live_sync() -> list[dict[str, Any]]:
