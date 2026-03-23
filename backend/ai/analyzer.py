@@ -18,7 +18,7 @@ from .prompt_builder import build_analysis_prompt, SYSTEM_PROMPT
 logger = logging.getLogger(__name__)
 
 MODEL = "claude-sonnet-4-6"
-MAX_TOKENS = 6000   # Augmenté pour le schéma enrichi (régime, rotation, 4 couches, scénarios)
+MAX_TOKENS = 8192   # Max Sonnet — schéma enrichi avec tous les champs optionnels
 TEMPERATURE = 0.3   # Faible pour maximiser la reproductibilité factuelle
 
 
@@ -58,10 +58,13 @@ def analyze_session(session: MarketSession) -> dict[str, Any]:
 
     raw_text = message.content[0].text
     logger.info(
-        "Réponse Claude reçue — input: %d tokens, output: %d tokens",
+        "Réponse Claude reçue — input: %d tokens, output: %d tokens, stop_reason: %s",
         message.usage.input_tokens,
         message.usage.output_tokens,
+        message.stop_reason,
     )
+    if message.stop_reason == "max_tokens":
+        logger.warning("ATTENTION: réponse tronquée par max_tokens (%d)", MAX_TOKENS)
 
     analysis = _parse_json_response(raw_text, session)
 
