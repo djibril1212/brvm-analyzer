@@ -13,10 +13,11 @@ RAW_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_boc_url(session_date: date) -> str:
-    """Retourne l'URL du BOC pour une date donnée."""
-    formatted = session_date.strftime("%d-%m-%Y")
-    # Ajuster selon l'URL réelle de brvm.org après inspection
-    return f"https://www.brvm.org/fr/cours-de-bourse/{formatted}/telecharger"
+    """Retourne l'URL du BOC pour une date donnée.
+    Format : https://www.brvm.org/sites/default/files/boc_YYYYMMDD_2.pdf
+    """
+    formatted = session_date.strftime("%Y%m%d")
+    return f"https://www.brvm.org/sites/default/files/boc_{formatted}_2.pdf"
 
 
 def download_boc(session_date: date, max_retries: int = 3, delay_minutes: int = 2) -> Path:
