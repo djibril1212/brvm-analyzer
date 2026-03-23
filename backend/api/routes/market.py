@@ -3,8 +3,6 @@ Routes publiques de lecture des données de marché BRVM.
 Rate limited à 60 requêtes/minute par IP.
 """
 
-from __future__ import annotations
-
 import logging
 from datetime import date
 from typing import Any, Optional

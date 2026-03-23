@@ -99,78 +99,37 @@ async def scrape_with_playwright() -> list[dict[str, Any]] | None:
 
 
 def _parse_brvm_html(html: str) -> list[dict[str, Any]]:
-    """Parse le HTML de la page BRVM pour extraire les cours."""
-    from html.parser import HTMLParser
-
+    """
+    Parse le HTML de la page BRVM pour extraire les cours.
+    Extrait depuis le widget ticker : <div class="item"><span>TICKER</span>...
+    Format : ticker, last_price (ex: "5 200"), variation_pct (ex: "-0,77%")
+    """
     rows: list[dict[str, Any]] = []
     scraped_at = datetime.now(timezone.utc).isoformat()
 
-    # Pattern de parsing des tableaux HTML
-    # La page BRVM contient un tableau avec : symbole, nom, cours_veille,
-    # ouv, cloture, var%, volume, valeur, ...
-    table_pattern = re.compile(
-        r"<tr[^>]*>(.*?)</tr>", re.DOTALL | re.IGNORECASE
+    # Pattern du widget ticker (tous les 47 titres)
+    item_pattern = re.compile(
+        r'<div class="item"><span>([A-Z]+)</span>&nbsp;'
+        r'<span>([\d\s]+)</span>&nbsp;'
+        r'<span>([+-]?[\d,]+%)</span>',
+        re.IGNORECASE,
     )
-    cell_pattern = re.compile(
-        r"<t[dh][^>]*>(.*?)</t[dh]>", re.DOTALL | re.IGNORECASE
-    )
-    tag_pattern = re.compile(r"<[^>]+>")
-
-    def clean(text: str) -> str:
-        return tag_pattern.sub("", text).strip().replace("\xa0", " ").replace(",", ".")
 
     def to_float(s: str) -> float | None:
-        s = clean(s).replace(" ", "").replace("%", "")
+        s = s.strip().replace("\xa0", "").replace(" ", "").replace(",", ".").replace("%", "")
         try:
             return float(s)
         except (ValueError, TypeError):
             return None
 
-    known_symbols = {
-        "ABJC", "BICB", "BICC", "BNBC", "BOAB", "BOABF", "BOAC", "BOAM",
-        "BOAN", "BOAS", "CABC", "CBIBF", "CFAC", "CIEC", "ECOC", "ETIT",
-        "FTSC", "LNBB", "NEIC", "NSBC", "NTLC", "ONTBF", "ORAC", "ORGT",
-        "PALC", "PRSC", "SAFC", "SCRC", "SDCC", "SDSC", "SEMC", "SGBC",
-        "SHEC", "SIBC", "SICC", "SIVC", "SLBC", "SMBC", "SNTS", "SOGC",
-        "SPHC", "STAC", "STBC", "SVOC", "TTLC", "TTLS", "UNLC", "UNXC",
-    }
-
-    for match in table_pattern.finditer(html):
-        cells = [clean(m.group(1)) for m in cell_pattern.finditer(match.group(1))]
-        if len(cells) < 7:
-            continue
-
-        # Trouver le symbole dans les cellules
-        symbol = None
-        for cell in cells[:4]:
-            upper = cell.upper().strip()
-            if upper in known_symbols:
-                symbol = upper
-                break
-
-        if not symbol:
-            continue
-
-        # Mapping selon l'ordre habituel du tableau BRVM
-        # [0] secteur/vide, [1] symbole, [2] nom, [3] cours_veille,
-        # [4] ouv, [5] cloture, [6] var%, [7] volume, [8] valeur
-        try:
-            idx = next(i for i, c in enumerate(cells) if c.upper() == symbol)
-        except StopIteration:
-            continue
-
-        def get(offset: int) -> str:
-            i = idx + offset
-            return cells[i] if 0 <= i < len(cells) else ""
-
-        variation_str = get(5).replace("+", "")
+    for m in item_pattern.finditer(html):
+        ticker = m.group(1).upper()
+        last_price = to_float(m.group(2))
+        variation_pct = to_float(m.group(3))
         rows.append({
-            "ticker": symbol,
-            "prev_close": to_float(get(2)),
-            "open_price": to_float(get(3)),
-            "last_price": to_float(get(4)),
-            "variation_pct": to_float(variation_str),
-            "volume": to_float(get(6)),
+            "ticker": ticker,
+            "last_price": last_price,
+            "variation_pct": variation_pct,
             "scraped_at": scraped_at,
             "status": "live",
         })
