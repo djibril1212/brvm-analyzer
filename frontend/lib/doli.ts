@@ -173,6 +173,13 @@ const DOLI_URL = "https://www.getdoli.com/fr/market";
 
 export async function fetchDoliSession(): Promise<DoliPayload | null> {
   try {
+    // En séance (lun-ven 08h-15h UTC) : cache 45s pour avoir des prix quasi-live
+    // Hors séance : cache 10 min (données figées de toute façon)
+    const now = new Date();
+    const utcH = now.getUTCHours();
+    const utcD = now.getUTCDay();
+    const inSession = utcD >= 1 && utcD <= 5 && utcH >= 8 && utcH < 15;
+
     const res = await fetch(DOLI_URL, {
       headers: {
         "User-Agent":
@@ -181,7 +188,7 @@ export async function fetchDoliSession(): Promise<DoliPayload | null> {
           "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Accept-Language": "fr-FR,fr;q=0.9",
       },
-      next: { revalidate: 300 }, // cache 5 min
+      next: { revalidate: inSession ? 45 : 600 },
     });
 
     if (!res.ok) {
