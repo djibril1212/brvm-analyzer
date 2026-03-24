@@ -1,19 +1,18 @@
 import NextAuth from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
+import GitHubProvider from "next-auth/providers/github";
 
 const handler = NextAuth({
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    GitHubProvider({
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!,
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      // Seuls les emails autorisés peuvent se connecter
-      const allowed = process.env.ALLOWED_EMAIL;
-      if (!allowed) return false; // Sécurité par défaut : refuser si non configuré
-      return user.email === allowed;
+    async signIn({ profile }) {
+      const allowed = process.env.ALLOWED_GITHUB_USERNAME;
+      if (!allowed) return false;
+      return (profile as { login?: string })?.login === allowed;
     },
   },
   pages: {
