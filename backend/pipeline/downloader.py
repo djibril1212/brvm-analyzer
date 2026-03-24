@@ -16,17 +16,25 @@ class BOCNotAvailableError(Exception):
     """Le BOC n'a pas encore été publié par la BRVM pour cette date."""
 
 
-def get_boc_url(session_date: date) -> str:
-    """Retourne l'URL du BOC pour une date donnée.
-    Format : https://www.brvm.org/sites/default/files/boc_YYYYMMDD_2.pdf
+def get_boc_urls(session_date: date) -> list[str]:
+    """
+    Retourne les URLs candidates du BOC pour une date donnée.
+    BRVM utilise deux formats selon les séances :
+      - boc_YYYYMMDD_2.pdf  (format principal)
+      - boc_YYYYMMDD.pdf    (format alternatif, utilisé certains jours)
     """
     formatted = session_date.strftime("%Y%m%d")
-    return f"https://www.brvm.org/sites/default/files/boc_{formatted}_2.pdf"
+    base = "https://www.brvm.org/sites/default/files"
+    return [
+        f"{base}/boc_{formatted}_2.pdf",
+        f"{base}/boc_{formatted}.pdf",
+    ]
 
 
 def download_boc(session_date: date, max_retries: int = 3, delay_minutes: int = 2) -> Path:
     """
     Télécharge le BOC PDF pour la date donnée.
+    Essaie les deux formats d'URL connus (avec et sans suffixe _2).
     Retente max_retries fois avec un délai de delay_minutes entre chaque tentative.
     Retourne le chemin vers le fichier téléchargé.
     """
@@ -36,23 +44,27 @@ def download_boc(session_date: date, max_retries: int = 3, delay_minutes: int = 
         logger.info(f"BOC déjà téléchargé : {output_path}")
         return output_path
 
-    url = get_boc_url(session_date)
+    urls = get_boc_urls(session_date)
     last_error = None
 
     for attempt in range(1, max_retries + 1):
         try:
             logger.info(f"Tentative {attempt}/{max_retries} — téléchargement BOC {session_date}")
             with httpx.Client(timeout=60, follow_redirects=True, verify=False) as client:
-                response = client.get(url)
+                response = None
+                for url in urls:
+                    r = client.get(url)
+                    if r.status_code == 200:
+                        response = r
+                        logger.info(f"BOC trouvé à : {url}")
+                        break
+                    logger.debug(f"URL {url} → {r.status_code}")
 
-                # 404 = BOC pas encore publié par la BRVM (pas la peine de retenter)
-                if response.status_code == 404:
+                if response is None:
                     raise BOCNotAvailableError(
-                        f"BOC du {session_date} non disponible sur brvm.org (404) — "
+                        f"BOC du {session_date} non disponible sur brvm.org (404 sur les deux URLs) — "
                         f"sera réessayé au prochain cron."
                     )
-
-                response.raise_for_status()
 
                 if "application/pdf" not in response.headers.get("content-type", ""):
                     raise ValueError(f"Réponse non-PDF reçue : {response.headers.get('content-type')}")
