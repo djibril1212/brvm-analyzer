@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -36,13 +37,6 @@ const NAV = [
 
 export function LeftSidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
-  }
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -132,7 +126,7 @@ export function LeftSidebar() {
             <SidebarMenuButton
               tooltip="Déconnexion"
               className="text-muted-foreground hover:text-destructive"
-              onClick={handleLogout}
+              onClick={() => signOut({ callbackUrl: "/login" })}
             >
               <LogOut />
               <span>Déconnexion</span>
