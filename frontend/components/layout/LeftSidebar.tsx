@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -12,7 +11,6 @@ import {
   FlaskConical,
   Settings,
   MessageSquare,
-  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -120,16 +118,6 @@ export function LeftSidebar() {
             >
               <Settings />
               <span>Paramètres</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Déconnexion"
-              className="text-muted-foreground hover:text-destructive"
-              onClick={() => signOut({ callbackUrl: "/login" })}
-            >
-              <LogOut />
-              <span>Déconnexion</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
