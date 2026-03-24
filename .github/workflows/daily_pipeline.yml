@@ -3,8 +3,9 @@ name: BRVM Daily Pipeline
 on:
   schedule:
     # 18h30 UTC = fin de séance BRVM (ouverture 9h-14h heure Abidjan = UTC+0)
-    # Lundi–Vendredi uniquement
     - cron: "30 18 * * 1-5"
+    # 08h00 UTC le lendemain matin = rattrapage si BOC publié tardivement
+    - cron: "0 8 * * 2-6"
   workflow_dispatch:
     inputs:
       session_date:

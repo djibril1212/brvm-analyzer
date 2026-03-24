@@ -58,8 +58,16 @@ def run_pipeline(
         # Étape 1 : Téléchargement du BOC
         # ---------------------------------------------------------------
         if not skip_download:
+            from .downloader import BOCNotAvailableError
             logger.info("[1/6] Téléchargement du BOC...")
-            pdf_path = download_boc(target_date)
+            try:
+                pdf_path = download_boc(target_date)
+            except BOCNotAvailableError as e:
+                logger.info("[1/6] BOC non disponible — skip sans erreur : %s", e)
+                result.steps_completed.append("boc_not_available")
+                result.success = True
+                result.duration_seconds = time.perf_counter() - start_time
+                return result
             result.steps_completed.append("download")
             logger.info("[1/6] BOC téléchargé : %s", pdf_path)
         else:
