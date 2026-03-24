@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -11,6 +11,7 @@ import {
   FlaskConical,
   Settings,
   MessageSquare,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -35,6 +36,13 @@ const NAV = [
 
 export function LeftSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
@@ -118,6 +126,16 @@ export function LeftSidebar() {
             >
               <Settings />
               <span>Paramètres</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Déconnexion"
+              className="text-muted-foreground hover:text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut />
+              <span>Déconnexion</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
