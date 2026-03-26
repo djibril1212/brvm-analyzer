@@ -1,1 +1,12 @@
-{}
+{
+  "crons": [
+    {
+      "path": "/api/cron/pipeline",
+      "schedule": "30 18 * * 1-5"
+    },
+    {
+      "path": "/api/cron/pipeline",
+      "schedule": "0 8 * * 2-6"
+    }
+  ]
+}

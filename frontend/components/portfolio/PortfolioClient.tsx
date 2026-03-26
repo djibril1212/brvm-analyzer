@@ -38,18 +38,23 @@ import {
   TrendingDown,
   Briefcase,
   Info,
+  Pencil,
+  Download,
 } from "lucide-react";
 import {
   loadPortfolio,
   addPosition,
   removePosition,
+  updatePosition,
   enrichPositions,
   computeSummary,
   formatXOF,
+  exportPositionsToCsv,
 } from "@/lib/portfolio";
-import type { Portfolio, PositionWithMarket, BrokerAccount } from "@/types/portfolio";
+import type { Portfolio, Position, PositionWithMarket, BrokerAccount } from "@/types/portfolio";
 import type { StockQuote } from "@/types/brvm";
 import { ImportDialog } from "./ImportDialog";
+import { PortfolioAllocationChart } from "./PortfolioAllocationChart";
 
 const BROKER_LABELS: Record<BrokerAccount, string> = {
   SGI_TOGO: "SGI TOGO",
@@ -244,9 +249,160 @@ function AddPositionDialog({ stocks, onAdd }: { stocks: StockQuote[]; onAdd: () 
   );
 }
 
+function EditPositionDialog({
+  position,
+  stocks,
+  onClose,
+  onSave,
+}: {
+  position: Position | null;
+  stocks: StockQuote[];
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const [qty, setQty] = useState(position ? String(position.quantity) : "");
+  const [price, setPrice] = useState(position ? String(position.avgBuyPrice) : "");
+  const [date, setDate] = useState(position?.buyDate ?? "");
+  const [account, setAccount] = useState<BrokerAccount>(position?.account ?? "SGI_TOGO");
+  const [notes, setNotes] = useState(position?.notes ?? "");
+
+  // Sync fields when position changes
+  useEffect(() => {
+    if (position) {
+      setQty(String(position.quantity));
+      setPrice(String(position.avgBuyPrice));
+      setDate(position.buyDate);
+      setAccount(position.account);
+      setNotes(position.notes ?? "");
+    }
+  }, [position]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!position) return;
+    const q = parseFloat(qty);
+    const p = parseFloat(price.replace(",", "."));
+    if (isNaN(q) || isNaN(p) || q <= 0 || p <= 0) return;
+    updatePosition(position.id, {
+      quantity: q,
+      avgBuyPrice: p,
+      buyDate: date,
+      account,
+      notes: notes.trim() || undefined,
+    });
+    onSave();
+  };
+
+  const matchedStock = stocks.find((s) => s.symbol === position?.symbol);
+
+  return (
+    <Dialog open={!!position} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            Modifier{" "}
+            <span className="font-mono text-gold">{position?.symbol}</span>
+          </DialogTitle>
+        </DialogHeader>
+        {position && (
+          <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+            {matchedStock && (
+              <p className="text-[11px] text-muted-foreground bg-muted/40 rounded-md px-3 py-2">
+                {matchedStock.name} · Cours actuel :{" "}
+                <span className="font-mono text-foreground">
+                  {matchedStock.close.toLocaleString("fr-FR")} XOF
+                </span>
+              </p>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-qty">Quantité (titres)</Label>
+                <Input
+                  id="edit-qty"
+                  type="number"
+                  min="1"
+                  value={qty}
+                  onChange={(e) => setQty(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-price">PRU (XOF)</Label>
+                <Input
+                  id="edit-price"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="font-mono"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-date">Date d&apos;achat</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Compte</Label>
+                <Select value={account} onValueChange={(v: string) => setAccount(v as BrokerAccount)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(BROKER_LABELS).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-notes">Notes (optionnel)</Label>
+              <Input
+                id="edit-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Ex: achat progressif, dividende attendu…"
+              />
+            </div>
+
+            {qty && price && !isNaN(parseFloat(qty)) && !isNaN(parseFloat(price.replace(",", "."))) && (
+              <div className="rounded-md bg-muted/40 border border-border px-3 py-2.5 text-[12px]">
+                <span className="text-muted-foreground">Nouvelle valorisation initiale : </span>
+                <span className="font-mono font-semibold text-foreground">
+                  {formatXOF(parseFloat(qty) * parseFloat(price.replace(",", ".")))}
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-1">
+              <Button type="button" variant="outline" size="sm" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" size="sm">
+                Enregistrer
+              </Button>
+            </div>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function PortfolioClient({ stocks }: Props) {
   const [portfolio, setPortfolio] = useState<Portfolio>({ positions: [], updatedAt: "" });
   const [mounted, setMounted] = useState(false);
+  const [editingPos, setEditingPos] = useState<Position | null>(null);
 
   const reload = useCallback(() => {
     setPortfolio(loadPortfolio());
@@ -282,10 +438,29 @@ export function PortfolioClient({ stocks }: Props) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {!isEmpty && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => exportPositionsToCsv(enriched)}
+            >
+              <Download className="h-4 w-4" />
+              Exporter CSV
+            </Button>
+          )}
           <ImportDialog stocks={stocks} onImport={reload} />
           <AddPositionDialog stocks={stocks} onAdd={reload} />
         </div>
       </div>
+
+      {/* ── Edit dialog (partagé, contrôlé) ── */}
+      <EditPositionDialog
+        position={editingPos}
+        stocks={stocks}
+        onClose={() => setEditingPos(null)}
+        onSave={() => { setEditingPos(null); reload(); }}
+      />
 
       {/* ── Summary cards ── */}
       {!isEmpty && (
@@ -340,6 +515,11 @@ export function PortfolioClient({ stocks }: Props) {
         </div>
       )}
 
+      {/* ── Allocation chart ── */}
+      {!isEmpty && (
+        <PortfolioAllocationChart positions={enriched} totalValue={summary.totalValue} />
+      )}
+
       {/* ── Positions table ── */}
       <Card className="bg-card border-border">
         <CardHeader className="pb-2 pt-4 px-4">
@@ -370,6 +550,7 @@ export function PortfolioClient({ stocks }: Props) {
                     <th className="text-right px-4 py-2.5 text-[11px] uppercase tracking-wide text-muted-foreground font-medium">P&amp;L</th>
                     <th className="text-right px-3 py-2.5 text-[11px] uppercase tracking-wide text-muted-foreground font-medium">Compte</th>
                     <th className="px-3" />
+                    <th className="px-2" />
                   </tr>
                 </thead>
                 <tbody>
@@ -422,6 +603,17 @@ export function PortfolioClient({ stocks }: Props) {
                           <Badge variant="outline" className="text-[10px] font-normal">
                             {BROKER_LABELS[pos.account]}
                           </Badge>
+                        </td>
+                        {/* Edit */}
+                        <td className="px-2 py-3">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                            onClick={() => setEditingPos(pos)}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
                         </td>
                         {/* Delete */}
                         <td className="px-3 py-3">

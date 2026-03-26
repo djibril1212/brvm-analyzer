@@ -146,6 +146,38 @@ export function parseCsvRows(
   return results;
 }
 
+// ── CSV export ────────────────────────────────────────────────────────────────
+
+export function exportPositionsToCsv(positions: PositionWithMarket[]): void {
+  if (typeof window === "undefined") return;
+  const headers = [
+    "Symbole", "Nom", "Quantité", "PRU (XOF)",
+    "Cours actuel (XOF)", "Valorisation (XOF)",
+    "P&L (XOF)", "P&L (%)", "Date achat", "Compte",
+  ];
+  const rows = positions.map((p) => [
+    p.symbol,
+    `"${p.name}"`,
+    p.quantity,
+    p.avgBuyPrice,
+    p.currentPrice ?? "",
+    (p.currentValue ?? p.costBasis).toFixed(0),
+    p.unrealizedPnl !== null ? p.unrealizedPnl.toFixed(0) : "",
+    p.unrealizedPnlPct !== null ? p.unrealizedPnlPct.toFixed(2) : "",
+    p.buyDate,
+    p.account,
+  ]);
+  const csv = [headers, ...rows].map((r) => r.join(";")).join("\n");
+  // BOM pour compatibilité Excel
+  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `portefeuille-brvm-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function formatXOF(n: number): string {

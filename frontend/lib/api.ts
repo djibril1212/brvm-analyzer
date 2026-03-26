@@ -1,44 +1,35 @@
 /**
  * lib/api.ts
- * Data access layer — market data from getdoli.com (primary) or FastAPI backend (fallback).
- * Analysis (IA) still calls the FastAPI backend if available, falls back gracefully.
+ * Data access layer — market data depuis getdoli.com (primary) ou Supabase via API locale (fallback).
+ * Plus de dépendance Railway / NEXT_PUBLIC_API_URL.
  */
 
-import type { MarketSession, DailyAnalysis } from "@/types/brvm";
+import type { MarketSession, DailyAnalysis, StockQuote } from "@/types/brvm";
 import { fetchDoliSession, doliToSession } from "@/lib/doli";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
-
-// ─── Market data (getdoli.com → FastAPI fallback) ─────────────────────────────
+// ─── Market data (getdoli.com → Supabase fallback) ────────────────────────────
 
 export async function getLatestSession(): Promise<MarketSession> {
-  // Primary: getdoli.com
+  // Primary: getdoli.com (scrape live)
   try {
     const payload = await fetchDoliSession();
     if (payload) return doliToSession(payload);
   } catch (err) {
-    console.warn("[api] getdoli.com indisponible, fallback FastAPI:", err);
+    console.warn("[api] getdoli.com indisponible, fallback Supabase:", err);
   }
 
-  // Fallback: FastAPI backend
-  if (!API_BASE) {
-    throw new Error("Impossible de récupérer les données de marché (getdoli.com et API_BASE indisponibles)");
-  }
-  const res = await fetch(`${API_BASE}/api/market/latest`, {
+  // Fallback: Supabase via route locale
+  const res = await fetch("/api/market/latest", {
     next: { revalidate: 300 },
   });
-  if (!res.ok) throw new Error(`FastAPI /market/latest → HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`/api/market/latest → HTTP ${res.status}`);
   return res.json() as Promise<MarketSession>;
 }
 
-// ─── AI Analysis (FastAPI backend, optional) ──────────────────────────────────
+// ─── AI Analysis ──────────────────────────────────────────────────────────────
 
 export async function getLatestAnalysis(): Promise<DailyAnalysis> {
-  if (!API_BASE) {
-    throw new Error("API_BASE non configuré — analyse IA indisponible");
-  }
-
-  const res = await fetch(`${API_BASE}/api/market/analysis/latest`, {
+  const res = await fetch("/api/market/analysis/latest", {
     next: { revalidate: 3600 },
   });
 
@@ -49,16 +40,14 @@ export async function getLatestAnalysis(): Promise<DailyAnalysis> {
   return res.json() as Promise<DailyAnalysis>;
 }
 
-// ─── Historical data (FastAPI backend, optional) ──────────────────────────────
+// ─── Historical data ──────────────────────────────────────────────────────────
 
 export async function getStockHistory(
   symbol: string,
   limit = 30
-): Promise<import("@/types/brvm").StockQuote[]> {
-  if (!API_BASE) throw new Error("API_BASE non configuré");
-
+): Promise<StockQuote[]> {
   const res = await fetch(
-    `${API_BASE}/api/market/stocks/${symbol}/history?limit=${limit}`,
+    `/api/market/stocks/${encodeURIComponent(symbol)}/history?limit=${limit}`,
     { next: { revalidate: 3600 } }
   );
 
@@ -68,26 +57,22 @@ export async function getStockHistory(
 
 // ─── Session par date ─────────────────────────────────────────────────────────
 
-export async function getSession(date: string): Promise<import("@/types/brvm").MarketSession> {
-  if (!API_BASE) throw new Error("API_BASE non configuré");
-
-  const res = await fetch(`${API_BASE}/api/market/sessions/${date}`, {
+export async function getSession(date: string): Promise<MarketSession> {
+  const res = await fetch(`/api/market/sessions/${date}`, {
     next: { revalidate: 86400 },
   });
 
   if (!res.ok) throw new Error(`Session ${date} → HTTP ${res.status}`);
-  return res.json() as Promise<import("@/types/brvm").MarketSession>;
+  return res.json() as Promise<MarketSession>;
 }
 
 // ─── Analyse IA par date ──────────────────────────────────────────────────────
 
-export async function getSessionAnalysis(date: string): Promise<import("@/types/brvm").DailyAnalysis> {
-  if (!API_BASE) throw new Error("API_BASE non configuré");
-
-  const res = await fetch(`${API_BASE}/api/market/analysis/${date}`, {
+export async function getSessionAnalysis(date: string): Promise<DailyAnalysis> {
+  const res = await fetch(`/api/market/analysis/${date}`, {
     next: { revalidate: 86400 },
   });
 
   if (!res.ok) throw new Error(`Analyse ${date} → HTTP ${res.status}`);
-  return res.json() as Promise<import("@/types/brvm").DailyAnalysis>;
+  return res.json() as Promise<DailyAnalysis>;
 }
