@@ -18,7 +18,7 @@ from .prompt_builder import build_analysis_prompt, SYSTEM_PROMPT
 logger = logging.getLogger(__name__)
 
 MODEL = "claude-sonnet-4-6"
-MAX_TOKENS = 8192   # Max Sonnet — schéma enrichi avec tous les champs optionnels
+MAX_TOKENS = 16000  # Sonnet 4.6 supporte 64k — 16k pour éviter la troncature du JSON
 TEMPERATURE = 0.3   # Faible pour maximiser la reproductibilité factuelle
 
 
